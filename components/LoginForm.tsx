@@ -2,20 +2,11 @@
 
 import { useState } from 'react';
 import { ForgotPasswordModal } from './ForgotPasswordModal';
-import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import LoadingSpinner from './LoadingSpinner';
-
-// Create a simple spinner for buttons
-const ButtonSpinner = ({ size = "default" }: { size?: "sm" | "default" | "lg" }) => {
-  const sizeClass = size === "sm" ? "h-4 w-4" : size === "lg" ? "h-6 w-6" : "h-5 w-5";
-  return <div className={`animate-spin rounded-full ${sizeClass} border-b-2 border-current`}></div>;
-};
 
 interface LoginFormProps {
   onSubmit: (email: string, password: string, isSignUp: boolean) => Promise<void>;

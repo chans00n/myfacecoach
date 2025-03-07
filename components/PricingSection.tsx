@@ -1,10 +1,11 @@
 // File: /components/PricingSection.tsx
 
+'use client';
+
 // import Link from 'next/link';
 // import { StripeBuyButton } from './StripeBuyButton';
 import { motion } from 'framer-motion';
 import { CheckCircle2 } from 'lucide-react';
-import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -82,7 +83,7 @@ export function PricingSection() {
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">Simple, Transparent Pricing</h2>
           <p className="text-muted-foreground max-w-2xl mx-auto">
-            Choose the plan that's right for you and get started with your project today.
+            Choose the plan that&apos;s right for you and get started with your project today.
           </p>
         </div>
         
