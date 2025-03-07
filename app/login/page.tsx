@@ -37,13 +37,13 @@ export default function LoginPage() {
       </div>
       <div className="relative hidden bg-muted lg:block">
         <Image
-          src="/placeholder.svg"
+          src="/images/mathilde-langevin-NWEKGZ5B2q0-unsplash.jpg"
           alt="Login background"
           fill
           className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.2] dark:grayscale"
           priority
         />
-        <div className="absolute inset-0 bg-black/30"></div>
+        <div className="absolute inset-0 bg-black/40"></div>
         <div className="absolute inset-0 flex flex-col items-start justify-center p-12">
           <div className="max-w-md space-y-4 text-white">
             <h1 className="text-4xl font-bold tracking-tight">Welcome to NextTemp</h1>
