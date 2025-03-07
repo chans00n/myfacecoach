@@ -6,6 +6,9 @@ import { motion } from 'framer-motion';
 import { CheckCircle2 } from 'lucide-react';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 
 // interface PricingSectionProps {
 //   showFullDetails?: boolean;
@@ -49,81 +52,87 @@ const pricingTiers = [
     name: "Custom",
     price: "Custom",
     interval: "",
-    description: "Tailored to your needs",
+    description: "For specific requirements",
     features: [
       "Custom development",
-      "Dedicated support",
-      "Custom SLA",
-      "On-premise options",
-      "Training sessions"
+      "Dedicated account manager",
+      "Tailored solutions",
+      "Enterprise support",
+      "Custom SLA"
     ],
-    cta: "Contact Sales",
+    cta: "Contact Us",
     popular: false
   }
 ];
 
 export function PricingSection() {
   const router = useRouter();
-  const [selectedTier, setSelectedTier] = useState<string | null>("enterprise");
-
+  
   const handleTierClick = (tierId: string) => {
-    setSelectedTier(currentTier => currentTier === tierId ? null : tierId);
+    router.push(`/pay?tier=${tierId}`);
   };
-
+  
   const handleCTAClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    router.push('/profile');
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-12">
-      {pricingTiers.map((tier, i) => (
-        <motion.div
-          key={tier.name}
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ delay: i * 0.1 }}
-          onClick={() => handleTierClick(tier.id)}
-          className={`relative rounded-2xl p-8 shadow-lg cursor-pointer transition-all duration-300 ${
-            selectedTier === tier.id
-              ? 'bg-primary/5 dark:bg-primary/10 ring-2 ring-primary transform scale-105'
-              : 'bg-white dark:bg-slate-800 ring-1 ring-slate-200 dark:ring-slate-700 hover:ring-primary/50'
-          }`}
-        >
-          {/* Show Popular badge only for Enterprise tier */}
-          {tier.popular && (
-            <span className="absolute top-0 right-6 -translate-y-1/2 px-3 py-1 text-sm bg-primary text-white rounded-full">
-              Popular
-            </span>
-          )}
-          <h3 className="text-xl font-semibold text-slate-900 dark:text-white">{tier.name}</h3>
-          <div className="mt-4 flex items-baseline">
-            <span className="text-4xl font-bold text-slate-900 dark:text-white">{tier.price}</span>
-            <span className="ml-1 text-slate-500 dark:text-slate-400">{tier.interval}</span>
-          </div>
-          <p className="mt-4 text-slate-500 dark:text-slate-400">{tier.description}</p>
-          <ul className="mt-8 space-y-4">
-            {tier.features.map((feature) => (
-              <li key={feature} className="flex items-center">
-                <CheckCircle2 className="h-5 w-5 text-primary mr-3" />
-                <span className="text-slate-600 dark:text-slate-300">{feature}</span>
-              </li>
-            ))}
-          </ul>
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={handleCTAClick}
-            className={`mt-8 w-full py-3 px-4 rounded-lg text-center font-medium transition-colors ${
-              selectedTier === tier.id
-                ? 'bg-primary text-white hover:bg-primary-dark'
-                : 'bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-white hover:bg-slate-200 dark:hover:bg-slate-600'
-            }`}
-          >
-            {tier.cta}
-          </motion.button>
-        </motion.div>
-      ))}
-    </div>
+    <section id="pricing" className="py-20 bg-background">
+      <div className="container px-4 mx-auto">
+        <div className="text-center mb-16">
+          <h2 className="text-3xl md:text-4xl font-bold mb-4">Simple, Transparent Pricing</h2>
+          <p className="text-muted-foreground max-w-2xl mx-auto">
+            Choose the plan that's right for you and get started with your project today.
+          </p>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+          {pricingTiers.map((tier) => (
+            <motion.div
+              key={tier.id}
+              whileHover={{ y: -5 }}
+              transition={{ duration: 0.2 }}
+              onClick={() => handleTierClick(tier.id)}
+              className="cursor-pointer"
+            >
+              <Card className={`h-full flex flex-col ${tier.popular ? 'border-primary shadow-lg' : ''}`}>
+                {tier.popular && (
+                  <div className="absolute top-0 right-0 -mt-2 -mr-2">
+                    <Badge variant="default" className="bg-primary">Popular</Badge>
+                  </div>
+                )}
+                <CardHeader>
+                  <CardTitle>{tier.name}</CardTitle>
+                  <div className="flex items-baseline mt-2">
+                    <span className="text-3xl font-bold">{tier.price}</span>
+                    <span className="ml-1 text-muted-foreground">{tier.interval}</span>
+                  </div>
+                  <CardDescription>{tier.description}</CardDescription>
+                </CardHeader>
+                <CardContent className="flex-grow">
+                  <ul className="space-y-3">
+                    {tier.features.map((feature, i) => (
+                      <li key={i} className="flex items-start">
+                        <CheckCircle2 className="h-5 w-5 text-primary shrink-0 mr-2" />
+                        <span>{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+                <CardFooter>
+                  <Button 
+                    variant={tier.popular ? "default" : "outline"} 
+                    className="w-full" 
+                    onClick={handleCTAClick}
+                  >
+                    {tier.cta}
+                  </Button>
+                </CardFooter>
+              </Card>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </section>
   );
 }

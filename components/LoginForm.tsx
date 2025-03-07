@@ -3,6 +3,19 @@
 import { useState } from 'react';
 import { ForgotPasswordModal } from './ForgotPasswordModal';
 import Image from 'next/image';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import LoadingSpinner from './LoadingSpinner';
+
+// Create a simple spinner for buttons
+const ButtonSpinner = ({ size = "default" }: { size?: "sm" | "default" | "lg" }) => {
+  const sizeClass = size === "sm" ? "h-4 w-4" : size === "lg" ? "h-6 w-6" : "h-5 w-5";
+  return <div className={`animate-spin rounded-full ${sizeClass} border-b-2 border-current`}></div>;
+};
 
 interface LoginFormProps {
   onSubmit: (email: string, password: string, isSignUp: boolean) => Promise<void>;
@@ -28,101 +41,105 @@ export function LoginForm({
   };
 
   return (
-    <div className="w-full space-y-8 p-8 bg-surface-light dark:bg-surface-dark rounded-2xl shadow-subtle border border-gray-200 dark:border-gray-700">
-      <div className="text-center">
-        <div className="flex items-center justify-center gap-2 mb-6">
+    <Card className="w-full max-w-md mx-auto">
+      <CardHeader className="space-y-1 text-center">
+        <div className="flex items-center justify-center gap-2 mb-2">
           <span className="text-3xl">🎬</span>
-          <h2 className="text-2xl font-medium text-text dark:text-text-dark">
+          <CardTitle className="text-2xl font-medium">
             NextTemp
-          </h2>
+          </CardTitle>
         </div>
-      </div>
+        <CardDescription>
+          {isSignUp ? 'Create an account to get started' : 'Sign in to your account'}
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        {error && (
+          <Alert variant="destructive" className="mb-4">
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
 
-      {error && (
-        <div className="text-red-500 text-center">
-          {error}
-        </div>
-      )}
-
-      <div className="mt-6 space-y-4">
-        <button
-          onClick={onGoogleSignIn}
-          className="w-full py-2.5 px-4 border border-gray-200 dark:border-gray-700 rounded-full shadow-subtle text-text dark:text-text-dark bg-surface-light dark:bg-surface-dark hover:bg-neutral dark:hover:bg-neutral-dark transition-all flex items-center justify-center"
-        >
-          <Image
-            src="/Google-Logo.png"
-            alt="Google Logo"
-            width={20}
-            height={20}
-            className="mr-2"
-          />
-          Sign in with Google
-        </button>
-
-        <div className="flex items-center my-6">
-          <div className="flex-grow border-t border-gray-300 dark:border-gray-700"></div>
-          <span className="mx-4 text-sm text-gray-500 dark:text-gray-400">OR</span>
-          <div className="flex-grow border-t border-gray-300 dark:border-gray-700"></div>
-        </div>
-      </div>
-
-      <div className="text-center">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-          {isSignUp ? 'Create an account' : 'Are you an Email User?'}
-        </h2>
-      </div>
-
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="rounded-md shadow-sm space-y-4">
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="Email address"
-            className="appearance-none rounded-lg relative block w-full px-3 py-2 border border-gray-300 dark:border-gray-700 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
-          />
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="Password"
-            className="appearance-none rounded-lg relative block w-full px-3 py-2 border border-gray-300 dark:border-gray-700 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
-          />
-        </div>
-
-        <div className="flex items-center justify-between">
-          <button
-            type="button"
-            onClick={() => setIsForgotPasswordOpen(true)}
-            className="text-sm text-primary hover:text-primary-dark transition-colors"
+        <div className="space-y-4">
+          <Button 
+            variant="outline" 
+            className="w-full" 
+            type="button" 
+            onClick={onGoogleSignIn}
+            isLoading={isLoading}
           >
-            Forgot your password?
-          </button>
+            {!isLoading && (
+              <svg className="mr-2 h-4 w-4" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512">
+                <path fill="currentColor" d="M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 123 24.5 166.3 64.9l-67.5 64.9C258.5 52.6 94.3 116.6 94.3 256c0 86.5 69.1 156.6 153.7 156.6 98.2 0 135-70.4 140.8-106.9H248v-85.3h236.1c2.3 12.7 3.9 24.9 3.9 41.4z"></path>
+              </svg>
+            )}
+            Continue with Google
+          </Button>
+
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-background px-2 text-muted-foreground">
+                Or continue with
+              </span>
+            </div>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="name@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="password">Password</Label>
+                <Button
+                  variant="link"
+                  className="px-0 font-normal h-auto"
+                  type="button"
+                  onClick={() => setIsForgotPasswordOpen(true)}
+                >
+                  Forgot password?
+                </Button>
+              </div>
+              <Input
+                id="password"
+                type="password"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </div>
+            <Button className="w-full" type="submit" isLoading={isLoading}>
+              {isSignUp ? 'Sign Up' : 'Sign In'}
+            </Button>
+          </form>
         </div>
-
-        <ForgotPasswordModal 
-          isOpen={isForgotPasswordOpen}
-          onClose={() => setIsForgotPasswordOpen(false)}
-        />
-
-        <button 
-          type="submit" 
-          disabled={isLoading}
-          className="w-full py-2.5 px-4 border border-transparent rounded-full shadow-sm text-white bg-primary hover:bg-primary-dark disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-all"
+      </CardContent>
+      <CardFooter>
+        <Button
+          variant="link"
+          className="w-full"
+          onClick={() => setIsSignUp(!isSignUp)}
         >
-          {isSignUp ? 'Sign up' : 'Sign in'} with Email
-        </button>
+          {isSignUp ? 'Already have an account? Sign In' : "Don't have an account? Sign Up"}
+        </Button>
+      </CardFooter>
 
-        <div className="text-center">
-          <button
-            type="button"
-            onClick={() => setIsSignUp(!isSignUp)}
-            className="text-primary hover:text-primary-dark transition-colors"
-          >
-            {isSignUp ? 'Already have an account? Sign in' : 'Need an account? Sign up'}
-          </button>
-        </div>
-      </form>
-    </div>
+      <ForgotPasswordModal
+        isOpen={isForgotPasswordOpen}
+        onClose={() => setIsForgotPasswordOpen(false)}
+      />
+    </Card>
   );
 }
