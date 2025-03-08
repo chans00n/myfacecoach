@@ -35,6 +35,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { RadialProgress } from "@/components/ui/radial-progress";
 
 const AUTH_TIMEOUT = 15000; // 15 seconds
 
@@ -112,26 +113,36 @@ const calculateMetrics = () => {
   const newUsersGrowth = ((totalNewUsers - prevTotalNewUsers) / prevTotalNewUsers) * 100;
   const engagementGrowth = ((avgEngagement - prevAvgEngagement) / prevAvgEngagement) * 100;
   
+  // Calculate progress percentages for radial charts (normalized to 0-100)
+  const activeProgress = Math.min(100, Math.round((totalActiveUsers / 1000) * 100));
+  const newUsersProgress = Math.min(100, Math.round((totalNewUsers / 1000) * 100));
+  const engagementProgress = avgEngagement; // Already a percentage
+  const revenueProgress = Math.min(100, Math.round((totalNewUsers * 19.99) / 200));
+  
   return {
     activeUsers: {
       value: totalActiveUsers.toLocaleString(),
       change: activeGrowth.toFixed(1) + "%",
-      trend: activeGrowth >= 0 ? "up" : "down"
+      trend: activeGrowth >= 0 ? "up" : "down",
+      progress: activeProgress
     },
     newUsers: {
       value: totalNewUsers.toLocaleString(),
       change: newUsersGrowth.toFixed(1) + "%",
-      trend: newUsersGrowth >= 0 ? "up" : "down"
+      trend: newUsersGrowth >= 0 ? "up" : "down",
+      progress: newUsersProgress
     },
     engagement: {
       value: avgEngagement + "%",
       change: engagementGrowth.toFixed(1) + "%",
-      trend: engagementGrowth >= 0 ? "up" : "down"
+      trend: engagementGrowth >= 0 ? "up" : "down",
+      progress: engagementProgress
     },
     revenue: {
       value: "$" + (totalNewUsers * 19.99).toFixed(2) + "k",
       change: "+" + newUsersGrowth.toFixed(1) + "%",
-      trend: "up"
+      trend: "up",
+      progress: revenueProgress
     }
   };
 };
@@ -198,28 +209,32 @@ const dashboardMetrics = [
     value: metrics.activeUsers.value,
     change: metrics.activeUsers.change,
     icon: <Users className="h-6 w-6 text-primary" />,
-    trend: metrics.activeUsers.trend
+    trend: metrics.activeUsers.trend,
+    progress: metrics.activeUsers.progress
   },
   {
     title: "New Signups",
     value: metrics.newUsers.value,
     change: metrics.newUsers.change,
     icon: <PlusCircle className="h-6 w-6 text-primary" />,
-    trend: metrics.newUsers.trend
+    trend: metrics.newUsers.trend,
+    progress: metrics.newUsers.progress
   },
   {
     title: "Engagement Rate",
     value: metrics.engagement.value,
     change: metrics.engagement.change,
     icon: <Activity className="h-6 w-6 text-primary" />,
-    trend: metrics.engagement.trend
+    trend: metrics.engagement.trend,
+    progress: metrics.engagement.progress
   },
   {
     title: "Est. Revenue",
     value: metrics.revenue.value,
     change: metrics.revenue.change,
     icon: <CreditCard className="h-6 w-6 text-primary" />,
-    trend: metrics.revenue.trend
+    trend: metrics.revenue.trend,
+    progress: metrics.revenue.progress
   }
 ];
 
@@ -398,21 +413,22 @@ export default function Dashboard() {
               transition={{ delay: index * 0.1 }}
             >
               <Card>
-                <CardContent className="pt-6">
-                  <div className="flex items-center justify-between">
-                    <div className="p-2 bg-primary/10 rounded-lg">
-                      {metric.icon}
-                    </div>
-                    <span className={`text-sm font-medium ${
-                      metric.trend === 'up' ? 'text-green-500' : 'text-red-500'
-                    }`}>
-                      {metric.change}
-                    </span>
-                  </div>
-                  <h3 className="mt-4 text-2xl font-bold">
-                    {metric.value}
-                  </h3>
-                  <p className="text-sm text-muted-foreground">
+                <CardContent className="pt-6 flex flex-col items-center justify-center text-center">
+                  <RadialProgress 
+                    value={metric.progress}
+                    variant={metric.trend === 'up' ? 'success' : 'danger'}
+                    icon={metric.icon}
+                    label={metric.value}
+                    indicator={
+                      <span className={`text-sm font-medium ${
+                        metric.trend === 'up' ? 'text-green-500' : 'text-red-500'
+                      }`}>
+                        {metric.change}
+                      </span>
+                    }
+                    className="mb-2"
+                  />
+                  <p className="text-sm text-muted-foreground mt-2">
                     {metric.title}
                   </p>
                 </CardContent>
