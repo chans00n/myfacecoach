@@ -54,7 +54,7 @@ export function SiteHeader() {
 
   return (
     <header className="w-full items-center border-b bg-background">
-      <div className="flex h-[--header-height] w-full items-center gap-2 px-4">
+      <div className="flex h-14 w-full items-center gap-2 px-4">
         <Button
           className="h-8 w-8"
           variant="ghost"
