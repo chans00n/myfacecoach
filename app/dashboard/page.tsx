@@ -473,6 +473,7 @@ export default function Dashboard() {
               title={todayWorkout.title}
               description={todayWorkout.description}
               imageUrl={todayWorkout.imageUrl}
+              videoUrl={todayWorkout.videoUrl}
               duration={todayWorkout.totalDuration}
               date={todayWorkout.date}
               level={todayWorkout.level}
