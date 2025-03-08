@@ -1,6 +1,6 @@
 "use client";
 
-import { Dumbbell, Calendar, ArrowUpRight, ChevronRight, ChevronLeft, Clock, Flame } from "lucide-react";
+import { Calendar, ArrowUpRight, ChevronRight, ChevronLeft, Clock, Flame } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import {
@@ -43,8 +43,8 @@ interface WorkoutGalleryProps {
 }
 
 export function WorkoutGallery({
-  title = "Daily Workouts",
-  description = "Track your fitness progress",
+  title = "Daily Lifts",
+  description = "Track your facial fitness progress",
   workouts = [],
   onViewDetails,
   onToggleExercise,
@@ -69,11 +69,8 @@ export function WorkoutGallery({
         className
       )}
     >
-      {/* Header */}
-      <div className="flex items-center gap-3 mb-6">
-        <div className="p-2 rounded-full bg-muted">
-          <Dumbbell className="w-5 h-5 text-foreground" />
-        </div>
+      {/* Header with Navigation Controls */}
+      <div className="flex items-center justify-between mb-6">
         <div>
           <h3 className="text-lg font-semibold text-foreground">
             {title}
@@ -82,9 +79,13 @@ export function WorkoutGallery({
             {description}
           </p>
         </div>
+        <div className="flex items-center gap-2">
+          <CarouselPrevious className="static h-8 w-8 translate-x-0 translate-y-0 bg-background border-border" />
+          <CarouselNext className="static h-8 w-8 translate-x-0 translate-y-0 bg-background border-border" />
+        </div>
       </div>
 
-      {/* Workout Carousel */}
+      {/* Lift Carousel */}
       <div className="mb-6">
         <Carousel className="w-full">
           <CarouselContent>
@@ -101,7 +102,7 @@ export function WorkoutGallery({
                   )}
                   onClick={() => setActiveWorkout(workout.id)}
                 >
-                  {/* Workout Image */}
+                  {/* Lift Image */}
                   {workout.imageUrl && (
                     <div className="relative w-full h-40 mb-3 rounded-lg overflow-hidden">
                       <Image
@@ -131,7 +132,7 @@ export function WorkoutGallery({
                   </div>
                   <h4 className="text-base font-medium text-foreground">{workout.title}</h4>
                   
-                  {/* Workout Brief */}
+                  {/* Lift Brief */}
                   {workout.brief && (
                     <p className="mt-1 text-xs text-muted-foreground line-clamp-2">
                       {workout.brief}
@@ -153,12 +154,10 @@ export function WorkoutGallery({
               </CarouselItem>
             ))}
           </CarouselContent>
-          <CarouselPrevious className="left-2 bg-background border-border" />
-          <CarouselNext className="right-2 bg-background border-border" />
         </Carousel>
       </div>
 
-      {/* Workout Details */}
+      {/* Lift Details */}
       {currentWorkout && (
         <div className="space-y-4">
           <div className="h-px bg-gradient-to-r from-transparent via-border to-transparent" />
@@ -169,7 +168,7 @@ export function WorkoutGallery({
               onClick={() => onViewDetails?.(currentWorkout.id)}
               className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
             >
-              View Details
+              View Lift Details
               <ArrowUpRight className="w-3 h-3" />
             </button>
           </div>

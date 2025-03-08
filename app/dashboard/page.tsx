@@ -526,15 +526,15 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Workout Gallery Section */}
+      {/* Lift Gallery Section */}
       <div className="mb-8">
-        <h3 className="text-xl font-bold mb-4">Your Workout Plan</h3>
+        <h3 className="text-xl font-bold mb-4">Your Lift Plan</h3>
         <div className="grid grid-cols-1 gap-6">
           <WorkoutGallery
             workouts={workouts}
             onToggleExercise={handleToggleExercise}
             onViewDetails={handleViewDetails}
-            title="Weekly Workout Plan"
+            title="Weekly Lift Plan"
             description="Track your facial fitness progress throughout the week"
           />
         </div>
