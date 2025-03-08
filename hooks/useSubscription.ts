@@ -21,25 +21,62 @@ export function useSubscription() {
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [lastStripeCheck, setLastStripeCheck] = useState<number>(0);
 
   const subscriptionCache = new Map<string, {data: Subscription | null, timestamp: number}>();
   const CACHE_DURATION = 30000; // 30 seconds
+  const STRIPE_CHECK_INTERVAL = 5 * 60 * 1000; // 5 minutes
 
-  const fetchSubscription = useCallback(async () => {
+  const checkWithStripe = useCallback(async (subscriptionId?: string) => {
+    if (!user?.id) return null;
+    
+    try {
+      // Get the current session
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        throw new Error('No active session found');
+      }
+      
+      const response = await fetch('/api/subscription/check', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          userId: user.id,
+          subscriptionId: subscriptionId
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to check subscription with Stripe');
+      }
+
+      const data = await response.json();
+      setLastStripeCheck(Date.now());
+      
+      if (data.active) {
+        // If the subscription is active in Stripe, update our local state
+        // and trigger a refresh of the subscription data from Supabase
+        await fetchSubscriptionFromSupabase();
+        return true;
+      }
+      
+      return false;
+    } catch (error) {
+      console.error('Error checking with Stripe:', error);
+      return null;
+    }
+  }, [user?.id, supabase]);
+
+  const fetchSubscriptionFromSupabase = useCallback(async () => {
     if (!user?.id) {
       setSubscription(null);
       setLoading(false);
-      return;
-    }
-
-    // Check cache first
-    const cached = subscriptionCache.get(user.id);
-    const now = Date.now();
-    
-    if (cached && (now - cached.timestamp < CACHE_DURATION)) {
-      setSubscription(cached.data);
-      setLoading(false);
-      return;
+      return null;
     }
 
     try {
@@ -61,13 +98,82 @@ export function useSubscription() {
 
       const result = isValid ? validSubscription : null;
       
-      // Update cache
-      subscriptionCache.set(user.id, {
-        data: result,
-        timestamp: now
-      });
+      return result;
+    } catch (err) {
+      console.error('Subscription fetch error from Supabase:', err);
+      return null;
+    }
+  }, [user?.id, supabase]);
+
+  const fetchSubscription = useCallback(async () => {
+    if (!user?.id) {
+      setSubscription(null);
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    // Check cache first
+    const cached = subscriptionCache.get(user.id);
+    const now = Date.now();
+    
+    if (cached && (now - cached.timestamp < CACHE_DURATION)) {
+      setSubscription(cached.data);
+      setLoading(false);
       
-      setSubscription(result);
+      // If it's been a while since we checked with Stripe, do a background check
+      if (now - lastStripeCheck > STRIPE_CHECK_INTERVAL) {
+        checkWithStripe(cached.data?.stripe_subscription_id);
+      }
+      
+      return;
+    }
+
+    try {
+      // First try to get the subscription from Supabase
+      const supabaseSubscription = await fetchSubscriptionFromSupabase();
+      
+      // If we found a subscription in Supabase, use it
+      if (supabaseSubscription) {
+        // Update cache
+        subscriptionCache.set(user.id, {
+          data: supabaseSubscription,
+          timestamp: now
+        });
+        
+        setSubscription(supabaseSubscription);
+        
+        // If it's been a while since we checked with Stripe, do a background check
+        if (now - lastStripeCheck > STRIPE_CHECK_INTERVAL) {
+          checkWithStripe(supabaseSubscription.stripe_subscription_id);
+        }
+      } else {
+        // If we didn't find a subscription in Supabase, check with Stripe
+        const isActiveInStripe = await checkWithStripe();
+        
+        if (isActiveInStripe) {
+          // If active in Stripe, we should now have an updated record in Supabase
+          const refreshedSubscription = await fetchSubscriptionFromSupabase();
+          
+          // Update cache
+          subscriptionCache.set(user.id, {
+            data: refreshedSubscription,
+            timestamp: now
+          });
+          
+          setSubscription(refreshedSubscription);
+        } else {
+          // No active subscription found
+          subscriptionCache.set(user.id, {
+            data: null,
+            timestamp: now
+          });
+          
+          setSubscription(null);
+        }
+      }
     } catch (err) {
       console.error('Subscription fetch error:', err);
       setError('Failed to load subscription');
@@ -75,7 +181,7 @@ export function useSubscription() {
     } finally {
       setLoading(false);
     }
-  }, [user?.id, supabase]);
+  }, [user?.id, supabase, lastStripeCheck, fetchSubscriptionFromSupabase, checkWithStripe]);
 
   useEffect(() => {
     fetchSubscription();
@@ -172,9 +278,7 @@ export function useSubscription() {
     subscription,
     isLoading: loading,
     error,
-    syncWithStripe: useCallback((subscriptionId: string) => {
-      debouncedSyncWithStripe(subscriptionId);
-    }, [debouncedSyncWithStripe]),
-    fetchSubscription // Expose fetch function for manual refresh
+    checkWithStripe,
+    fetchSubscription
   };
 } 

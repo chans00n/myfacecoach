@@ -7,7 +7,7 @@ import { useSubscription, Subscription } from '@/hooks/useSubscription';
 import { AccountManagement } from '@/components/AccountManagement';
 import { ErrorBoundary } from 'react-error-boundary';
 import { StripeBuyButton } from '@/components/StripeBuyButton';
-import { FaCheckCircle, FaCreditCard } from 'react-icons/fa';
+import { FaCheckCircle, FaCreditCard, FaSync } from 'react-icons/fa';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -34,12 +34,13 @@ function LoadingSpinner() {
 function ProfileContent() {
   const router = useRouter();
   const { user, isLoading: isAuthLoading } = useAuth();
-  const { subscription: baseSubscription, fetchSubscription } = useSubscription();
+  const { subscription: baseSubscription, fetchSubscription, checkWithStripe } = useSubscription();
   const subscription = baseSubscription as ExtendedSubscription | null;
   const [isCancelling, setIsCancelling] = useState(false);
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
   const [paymentMessage, setPaymentMessage] = useState('');
+  const [isCheckingStatus, setIsCheckingStatus] = useState(false);
 
   useEffect(() => {
     if (!isAuthLoading && !user) {
@@ -104,6 +105,33 @@ function ProfileContent() {
     }
   };
 
+  // Function to manually check subscription status with Stripe
+  const handleCheckStatus = async () => {
+    setIsCheckingStatus(true);
+    try {
+      if (!subscription?.stripe_subscription_id) {
+        throw new Error('No subscription ID found');
+      }
+      
+      await checkWithStripe(subscription.stripe_subscription_id);
+      await fetchSubscription();
+      
+      toast({
+        title: "Success",
+        description: "Subscription status updated successfully",
+      });
+    } catch (error) {
+      console.error('Error checking subscription status:', error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : 'Failed to check subscription status',
+        variant: "destructive",
+      });
+    } finally {
+      setIsCheckingStatus(false);
+    }
+  };
+
   // Add a function to open the Stripe Customer Portal
   const openStripeCustomerPortal = async () => {
     try {
@@ -140,6 +168,28 @@ function ProfileContent() {
     }
   };
 
+  // Helper function to determine subscription status display
+  const getSubscriptionStatus = () => {
+    if (!subscription) return { text: 'Inactive', variant: 'destructive' as const };
+    
+    if (subscription.status === 'active') {
+      if (subscription.cancel_at_period_end) {
+        return { text: 'Cancelling', variant: 'outline' as const };
+      }
+      return { text: 'Active', variant: 'default' as const };
+    }
+    
+    if (subscription.status === 'trialing') {
+      return { text: 'Trial', variant: 'secondary' as const };
+    }
+    
+    if (subscription.status === 'past_due') {
+      return { text: 'Past Due', variant: 'destructive' as const };
+    }
+    
+    return { text: 'Inactive', variant: 'destructive' as const };
+  };
+
   if (isAuthLoading) {
     return <LoadingSpinner />;
   }
@@ -147,6 +197,8 @@ function ProfileContent() {
   if (!user) {
     return null; // Will redirect in useEffect
   }
+
+  const subscriptionStatus = getSubscriptionStatus();
 
   return (
     <ErrorBoundary
@@ -195,10 +247,8 @@ function ProfileContent() {
                 <CardDescription>Manage your subscription and billing</CardDescription>
               </div>
               {subscription && (
-                <Badge variant={subscription.status === 'active' ? 'default' : 'destructive'}>
-                  {subscription.status === 'active' 
-                    ? subscription.cancel_at_period_end ? 'Cancelling' : 'Active' 
-                    : 'Inactive'}
+                <Badge variant={subscriptionStatus.variant}>
+                  {subscriptionStatus.text}
                 </Badge>
               )}
             </div>
@@ -234,6 +284,25 @@ function ProfileContent() {
                 </div>
 
                 <div className="flex flex-wrap gap-3 mt-6">
+                  <Button
+                    variant="outline"
+                    onClick={handleCheckStatus}
+                    disabled={isCheckingStatus}
+                    className="flex items-center gap-2"
+                  >
+                    {isCheckingStatus ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+                        Checking...
+                      </>
+                    ) : (
+                      <>
+                        <FaSync className="h-4 w-4" />
+                        Verify Status
+                      </>
+                    )}
+                  </Button>
+                  
                   <Button
                     variant="default"
                     onClick={openStripeCustomerPortal}
