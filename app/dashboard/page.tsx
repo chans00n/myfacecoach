@@ -272,6 +272,43 @@ export default function Dashboard() {
   const [authTimeout, setAuthTimeout] = useState(false);
   const [timeRange, setTimeRange] = useState("30d");
 
+  // Get greeting based on time of day
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return "Good morning";
+    if (hour < 18) return "Good afternoon";
+    return "Good evening";
+  };
+
+  // Get user's first name
+  const getUserFirstName = () => {
+    // Check if user exists and has metadata
+    if (!user) return "";
+    
+    // Try to get name from user_metadata.full_name
+    if (user.user_metadata?.full_name) {
+      const fullName = user.user_metadata.full_name;
+      return fullName.split(" ")[0];
+    }
+    
+    // Try to get name from user_metadata.name
+    if (user.user_metadata?.name) {
+      const fullName = user.user_metadata.name;
+      return fullName.split(" ")[0];
+    }
+    
+    // Try to get name from email
+    if (user.email) {
+      const emailName = user.email.split("@")[0];
+      // Capitalize first letter and remove numbers/special chars for a nicer display
+      return emailName.replace(/[^a-zA-Z]/g, "").charAt(0).toUpperCase() + 
+             emailName.replace(/[^a-zA-Z]/g, "").slice(1);
+    }
+    
+    // Default fallback
+    return "there";
+  };
+
   // Filter chart data based on selected time range
   const filteredChartData = chartData.filter((item) => {
     const date = new Date(item.date);
@@ -388,15 +425,22 @@ export default function Dashboard() {
   return (
     <div>
       {/* Dashboard Header */}
-      <div className="mb-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold">
-            Dashboard Overview
-          </h1>
-          <div className="flex items-center space-x-4">
-            <span className="text-sm text-muted-foreground">
-              {isInTrial ? "Trial Period" : "Premium Plan"}
-            </span>
+      <div className="mb-8">
+        <div className="flex flex-col space-y-2">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-3xl font-bold tracking-tight">
+                {getGreeting()}, {getUserFirstName()}
+              </h2>
+              <p className="text-muted-foreground mt-1">
+                Welcome to your dashboard overview
+              </p>
+            </div>
+            <div className="flex items-center space-x-4">
+              <span className="text-sm bg-primary/10 text-primary px-3 py-1 rounded-full font-medium">
+                {isInTrial ? "Trial Period" : "Premium Plan"}
+              </span>
+            </div>
           </div>
         </div>
       </div>
