@@ -14,7 +14,9 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  useSidebar,
 } from "@/components/ui/sidebar"
+import { cn } from "@/lib/utils"
 
 interface NavItem {
   title: string
@@ -33,6 +35,24 @@ interface NavMainProps {
 
 export function NavMain({ items }: NavMainProps) {
   const pathname = usePathname()
+  const { state } = useSidebar()
+  const isCollapsed = state === "collapsed"
+  const [openItems, setOpenItems] = React.useState<string[]>([])
+
+  // Close all dropdowns when sidebar collapses
+  React.useEffect(() => {
+    if (isCollapsed) {
+      setOpenItems([])
+    }
+  }, [isCollapsed])
+
+  const handleToggle = (url: string, isOpen: boolean) => {
+    if (isOpen) {
+      setOpenItems((prev) => [...prev, url])
+    } else {
+      setOpenItems((prev) => prev.filter(item => item !== url))
+    }
+  }
 
   return (
     <SidebarMenu>
@@ -54,7 +74,13 @@ export function NavMain({ items }: NavMainProps) {
         }
 
         return (
-          <Collapsible key={item.url} defaultOpen={isActive}>
+          <Collapsible 
+            key={item.url} 
+            defaultOpen={isActive && !isCollapsed}
+            open={!isCollapsed && openItems.includes(item.url)}
+            onOpenChange={(open) => handleToggle(item.url, open)}
+            disabled={isCollapsed}
+          >
             <SidebarMenuItem>
               <CollapsibleTrigger asChild>
                 <SidebarMenuButton isActive={isActive}>
@@ -63,7 +89,10 @@ export function NavMain({ items }: NavMainProps) {
                 </SidebarMenuButton>
               </CollapsibleTrigger>
             </SidebarMenuItem>
-            <CollapsibleContent className="pl-4 pt-1">
+            <CollapsibleContent className={cn(
+              "pl-4 pt-1 transition-all duration-200",
+              isCollapsed && "hidden"
+            )}>
               <SidebarMenu>
                 {item.items.map((subItem) => {
                   const isSubItemActive = pathname === subItem.url
