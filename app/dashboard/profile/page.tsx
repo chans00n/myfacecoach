@@ -73,10 +73,18 @@ function ProfileContent() {
   const handleCancelSubscription = async () => {
     setIsCancelling(true);
     try {
+      // Get the current session
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        throw new Error('No active session found');
+      }
+      
       const response = await fetch('/api/subscription/cancel', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
         },
       });
 
@@ -107,10 +115,18 @@ function ProfileContent() {
   const handleReactivateSubscription = async () => {
     setIsReactivating(true);
     try {
+      // Get the current session
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        throw new Error('No active session found');
+      }
+      
       const response = await fetch('/api/subscription/reactivate', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
         },
       });
 
