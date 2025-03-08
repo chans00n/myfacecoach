@@ -50,6 +50,37 @@ function SettingsContent() {
     }
   }, [theme, preferences.dark_mode]);
 
+  // Effect to save theme preference to database when theme changes
+  useEffect(() => {
+    if (user && theme && (
+      (theme === 'dark' && !preferences.dark_mode) || 
+      (theme === 'light' && preferences.dark_mode)
+    )) {
+      const newDarkMode = theme === 'dark';
+      setPreferences(prev => ({ ...prev, dark_mode: newDarkMode }));
+      
+      // Save to database without full form submission
+      const saveThemePreference = async () => {
+        try {
+          await supabase
+            .from('user_preferences')
+            .upsert({
+              user_id: user.id,
+              dark_mode: newDarkMode,
+              // Keep existing preferences for other fields
+              email_notifications: preferences.email_notifications,
+              language: preferences.language,
+              updated_at: new Date().toISOString()
+            });
+        } catch (error) {
+          console.error('Error saving theme preference:', error);
+        }
+      };
+      
+      saveThemePreference();
+    }
+  }, [theme, user, preferences, supabase]);
+
   useEffect(() => {
     if (!user) {
       router.push('/login');

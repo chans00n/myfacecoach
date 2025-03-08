@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation"
 import Link from "next/link"
 
 import { SearchForm } from "@/components/search-form"
+import { ThemeToggle } from "@/components/theme-toggle"
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -88,6 +89,8 @@ export function SiteHeader({ className }: React.HTMLAttributes<HTMLElement>) {
       
       <div className="ml-auto flex items-center gap-2 px-6">
         <SearchForm className="hidden md:block" />
+        
+        <ThemeToggle />
         
         <Button variant="ghost" size="icon" className="h-8 w-8">
           <Bell className="h-4 w-4" />
