@@ -9,11 +9,17 @@ import { ErrorBoundary } from 'react-error-boundary';
 import { StripeBuyButton } from '@/components/StripeBuyButton';
 import { FaCheckCircle, FaCreditCard, FaSync } from 'react-icons/fa';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { toast } from '@/components/ui/use-toast';
 import { supabase } from '@/utils/supabase';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Toaster } from '@/components/ui/toaster';
 
 // Extend the Subscription type with additional properties
 interface ExtendedSubscription extends Subscription {
@@ -21,6 +27,7 @@ interface ExtendedSubscription extends Subscription {
   interval?: string;
   amount?: number;
   currency?: string;
+  price_id?: string;
 }
 
 function LoadingSpinner() {
@@ -33,7 +40,7 @@ function LoadingSpinner() {
 
 function ProfileContent() {
   const router = useRouter();
-  const { user, isLoading: isAuthLoading } = useAuth();
+  const { user, isLoading: isAuthLoading, supabase } = useAuth();
   const { subscription: baseSubscription, fetchSubscription, checkWithStripe } = useSubscription();
   const subscription = baseSubscription as ExtendedSubscription | null;
   const [isCancelling, setIsCancelling] = useState(false);
@@ -41,6 +48,12 @@ function ProfileContent() {
   const [paymentSuccess, setPaymentSuccess] = useState(false);
   const [paymentMessage, setPaymentMessage] = useState('');
   const [isCheckingStatus, setIsCheckingStatus] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [preferences, setPreferences] = useState({
+    email_notifications: true,
+    language: 'english'
+  });
+  const [isLoadingPreferences, setIsLoadingPreferences] = useState(true);
 
   useEffect(() => {
     if (!isAuthLoading && !user) {
@@ -62,6 +75,42 @@ function ProfileContent() {
       window.history.replaceState({}, document.title, window.location.pathname);
     }
   }, []);
+
+  // Fetch user preferences
+  useEffect(() => {
+    if (!user) return;
+
+    const fetchPreferences = async () => {
+      setIsLoadingPreferences(true);
+      try {
+        const { data, error } = await supabase
+          .from('user_preferences')
+          .select('*')
+          .eq('user_id', user.id)
+          .single();
+
+        if (error) {
+          console.error('Error fetching preferences:', error);
+          return;
+        }
+
+        if (data) {
+          // Extract only the preferences we need
+          const { email_notifications, language } = data;
+          setPreferences({ 
+            email_notifications: email_notifications ?? true, 
+            language: language ?? 'english' 
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching preferences:', error);
+      } finally {
+        setIsLoadingPreferences(false);
+      }
+    };
+
+    fetchPreferences();
+  }, [user, supabase]);
 
   const handleCancelSubscription = async () => {
     setIsCancelling(true);
@@ -105,32 +154,19 @@ function ProfileContent() {
     }
   };
 
-  // Function to manually check subscription status with Stripe
   const handleCheckStatus = async () => {
     setIsCheckingStatus(true);
     try {
-      if (!subscription?.stripe_subscription_id) {
-        throw new Error('No subscription ID found');
-      }
-      
-      console.log('Checking subscription status for ID:', subscription.stripe_subscription_id);
-      console.log('Current subscription data:', subscription);
-      
-      await checkWithStripe(subscription.stripe_subscription_id);
-      await fetchSubscription();
-      
-      // Force a page refresh to ensure we get the latest data
-      window.location.reload();
-      
+      await checkWithStripe();
       toast({
-        title: "Success",
-        description: "Subscription status updated successfully",
+        title: "Status Updated",
+        description: "Your subscription status has been updated.",
       });
     } catch (error) {
       console.error('Error checking subscription status:', error);
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : 'Failed to check subscription status',
+        description: "Failed to update subscription status. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -138,7 +174,6 @@ function ProfileContent() {
     }
   };
 
-  // Add a function to open the Stripe Customer Portal
   const openStripeCustomerPortal = async () => {
     try {
       // Get the current session
@@ -148,7 +183,7 @@ function ProfileContent() {
         throw new Error('No active session found');
       }
       
-      const response = await fetch('/api/stripe/customer-portal', {
+      const response = await fetch('/api/subscription/portal', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -159,16 +194,16 @@ function ProfileContent() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to create customer portal session');
+        throw new Error(data.error || 'Failed to open customer portal');
       }
 
-      // Redirect to the Stripe Customer Portal
+      // Redirect to Stripe Customer Portal
       window.location.href = data.url;
     } catch (error) {
-      console.error('Error opening Stripe Customer Portal:', error);
+      console.error('Error opening customer portal:', error);
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : 'Failed to open Stripe Customer Portal',
+        description: error instanceof Error ? error.message : 'Failed to open customer portal',
         variant: "destructive",
       });
     }
@@ -193,208 +228,316 @@ function ProfileContent() {
       return { text: 'Past Due', variant: 'destructive' as const };
     }
     
-    return { text: 'Inactive', variant: 'destructive' as const };
+    return { text: subscription.status, variant: 'outline' as const };
   };
 
-  // Helper function to get the plan name based on subscription status
+  // Helper function to get plan name
   const getPlanName = () => {
-    if (!subscription) return 'non-MYFC Member';
+    if (!subscription) return 'No Plan';
     
-    if (subscription.status === 'active') {
-      return 'MYFC Member';
+    if (subscription.plan_name) {
+      return subscription.plan_name;
     }
     
-    if (subscription.status === 'trialing') {
-      return 'Trial MYFC Member';
+    // Fallback to price ID if plan name is not available
+    if (subscription.price_id) {
+      // Extract readable name from price ID if possible
+      const priceParts = subscription.price_id.split('_');
+      if (priceParts.length > 1) {
+        return priceParts[1].charAt(0).toUpperCase() + priceParts[1].slice(1);
+      }
+      return subscription.price_id;
     }
     
-    return 'non-MYFC Member';
+    return 'Unknown Plan';
   };
 
-  if (isAuthLoading) {
-    return <LoadingSpinner />;
-  }
+  const handleSavePreferences = async () => {
+    if (!user) return;
 
-  if (!user) {
-    return null; // Will redirect in useEffect
-  }
+    try {
+      setIsSaving(true);
+      
+      // Get the current preferences first to preserve dark_mode setting
+      const { data: currentPrefs } = await supabase
+        .from('user_preferences')
+        .select('dark_mode')
+        .eq('user_id', user.id)
+        .single();
+      
+      const dark_mode = currentPrefs?.dark_mode || false;
+      
+      const { error } = await supabase
+        .from('user_preferences')
+        .upsert({
+          user_id: user.id,
+          email_notifications: preferences.email_notifications,
+          dark_mode, // Keep existing dark_mode value
+          language: preferences.language,
+          updated_at: new Date().toISOString()
+        });
+
+      if (error) throw error;
+      
+      toast({
+        title: "Settings saved",
+        description: "Your preferences have been updated successfully.",
+      });
+      
+    } catch (error) {
+      console.error('Error saving preferences:', error);
+      toast({
+        title: "Error saving settings",
+        description: "There was a problem saving your preferences. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   const subscriptionStatus = getSubscriptionStatus();
 
+  if (isAuthLoading || isLoadingPreferences) {
+    return <LoadingSpinner />;
+  }
+
   return (
-    <ErrorBoundary
-      fallback={
-        <div className="p-4 text-red-500">
-          Failed to load subscription details. Please try refreshing.
-        </div>
-      }
-    >
-      <div className="space-y-6">
-        {paymentSuccess && (
-          <Card className="border-green-500">
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-3 text-green-600 dark:text-green-400">
-                <FaCheckCircle className="h-5 w-5" />
-                <p>{paymentMessage}</p>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        <div className="flex flex-col gap-2">
-          <h1 className="text-3xl font-bold tracking-tight">Profile</h1>
-          <p className="text-muted-foreground">
-            Manage your account settings and subscription
-          </p>
-        </div>
-
-        <Separator />
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Account Information</CardTitle>
-            <CardDescription>Manage your personal account details</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <AccountManagement />
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle>Subscription</CardTitle>
-                <CardDescription>Manage your subscription and billing</CardDescription>
-              </div>
-              {subscription && (
-                <Badge variant={subscriptionStatus.variant}>
-                  {subscriptionStatus.text}
-                </Badge>
-              )}
-            </div>
-          </CardHeader>
-          <CardContent>
-            {subscription ? (
-              <div className="space-y-4">
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div>
-                    <h3 className="text-sm font-medium text-muted-foreground">Plan</h3>
-                    <p className="mt-1 font-medium">{getPlanName()}</p>
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-medium text-muted-foreground">Billing Period</h3>
-                    <p className="mt-1 font-medium">
-                      {subscription.interval && subscription.interval !== 'year' && subscription.interval !== 'yearly' 
-                        ? 'Monthly' 
-                        : subscription.interval === 'year' || subscription.interval === 'yearly'
-                          ? 'Yearly'
-                          : 'Monthly' /* Default to Monthly if interval is missing or unknown */}
-                    </p>
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-medium text-muted-foreground">Next Billing Date</h3>
-                    <p className="mt-1 font-medium">
-                      {subscription.current_period_end
-                        ? new Date(subscription.current_period_end).toLocaleDateString()
-                        : 'N/A'}
-                    </p>
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-medium text-muted-foreground">Amount</h3>
-                    <p className="mt-1 font-medium">
-                      ${((subscription.amount || 1999) / 100).toFixed(2)} {subscription.currency?.toUpperCase() || 'USD'}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex flex-wrap gap-3 mt-6">
-                  <Button
-                    variant="outline"
-                    onClick={handleCheckStatus}
-                    disabled={isCheckingStatus}
-                    className="flex items-center gap-2"
-                  >
-                    {isCheckingStatus ? (
-                      <>
-                        <div className="w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
-                        Checking...
-                      </>
-                    ) : (
-                      <>
-                        <FaSync className="h-4 w-4" />
-                        Verify Status
-                      </>
-                    )}
-                  </Button>
-                  
-                  <Button
-                    variant="default"
-                    onClick={openStripeCustomerPortal}
-                    className="flex items-center gap-2"
-                  >
-                    <FaCreditCard className="h-4 w-4" />
-                    Manage Billing
-                  </Button>
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                <p className="text-muted-foreground">You don&apos;t have an active subscription.</p>
-                
-                <StripeBuyButton
-                  buyButtonId={process.env.NEXT_PUBLIC_STRIPE_BUTTON_ID || ''}
-                  publishableKey={process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || ''}
-                />
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Cancel Confirmation Modal */}
-        {isCancelModalOpen && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-            <div className="bg-card rounded-lg p-6 max-w-md w-full border shadow-lg">
-              <h3 className="text-xl font-semibold mb-4">Cancel Subscription?</h3>
-              <p className="text-muted-foreground mb-6">
-                You&apos;ll continue to have access until the end of your billing period on {new Date(subscription?.current_period_end || '').toLocaleDateString()}. No refunds are provided for cancellations.
-              </p>
-              <div className="flex gap-4 justify-end">
-                <Button
-                  variant="outline"
-                  onClick={() => setIsCancelModalOpen(false)}
-                  disabled={isCancelling}
-                >
-                  Keep Subscription
-                </Button>
-                <Button
-                  variant="destructive"
-                  onClick={handleCancelSubscription}
-                  disabled={isCancelling}
-                  className="flex items-center gap-2"
-                >
-                  {isCancelling ? (
-                    <>
-                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      Canceling...
-                    </>
-                  ) : (
-                    'Yes, Cancel'
-                  )}
-                </Button>
-              </div>
+    <div className="space-y-6">
+      <h1 className="text-3xl font-bold">Profile & Settings</h1>
+      
+      {paymentSuccess && (
+        <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-900 rounded-lg p-4 mb-6">
+          <div className="flex items-start">
+            <FaCheckCircle className="text-green-500 mt-0.5 mr-3 text-lg" />
+            <div>
+              <h3 className="font-medium text-green-800 dark:text-green-300">Payment Successful!</h3>
+              <p className="text-green-700 dark:text-green-400 text-sm">{paymentMessage}</p>
             </div>
           </div>
-        )}
-      </div>
-    </ErrorBoundary>
+        </div>
+      )}
+      
+      <Tabs defaultValue="subscription">
+        <TabsList className="mb-4">
+          <TabsTrigger value="subscription">Subscription</TabsTrigger>
+          <TabsTrigger value="account">Account</TabsTrigger>
+          <TabsTrigger value="general">General</TabsTrigger>
+          <TabsTrigger value="notifications">Notifications</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="subscription">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Subscription</CardTitle>
+                  <CardDescription>Manage your subscription and billing</CardDescription>
+                </div>
+                {subscription && (
+                  <Badge variant={subscriptionStatus.variant}>
+                    {subscriptionStatus.text}
+                  </Badge>
+                )}
+              </div>
+            </CardHeader>
+            <CardContent>
+              {subscription ? (
+                <div className="space-y-4">
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <div>
+                      <h3 className="text-sm font-medium text-muted-foreground">Plan</h3>
+                      <p className="mt-1 font-medium">{getPlanName()}</p>
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-medium text-muted-foreground">Billing Period</h3>
+                      <p className="mt-1 font-medium">
+                        {subscription.interval && subscription.interval !== 'year' && subscription.interval !== 'yearly' 
+                          ? 'Monthly' 
+                          : subscription.interval === 'year' || subscription.interval === 'yearly'
+                            ? 'Yearly'
+                            : 'Monthly' /* Default to Monthly if interval is missing or unknown */}
+                      </p>
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-medium text-muted-foreground">Next Billing Date</h3>
+                      <p className="mt-1 font-medium">
+                        {subscription.current_period_end
+                          ? new Date(subscription.current_period_end).toLocaleDateString()
+                          : 'N/A'}
+                      </p>
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-medium text-muted-foreground">Amount</h3>
+                      <p className="mt-1 font-medium">
+                        {subscription.amount && subscription.currency
+                          ? `${(subscription.amount / 100).toFixed(2)} ${subscription.currency.toUpperCase()}`
+                          : 'N/A'}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex flex-col sm:flex-row gap-3 mt-6">
+                    <Button 
+                      variant="outline" 
+                      className="flex items-center gap-2"
+                      onClick={openStripeCustomerPortal}
+                    >
+                      <FaCreditCard className="text-muted-foreground" />
+                      Manage Billing
+                    </Button>
+                    
+                    <Button 
+                      variant="outline" 
+                      className="flex items-center gap-2"
+                      onClick={handleCheckStatus}
+                      disabled={isCheckingStatus}
+                    >
+                      <FaSync className={`text-muted-foreground ${isCheckingStatus ? 'animate-spin' : ''}`} />
+                      {isCheckingStatus ? 'Checking...' : 'Refresh Status'}
+                    </Button>
+                    
+                    {subscription.status === 'active' && !subscription.cancel_at_period_end && (
+                      <Button 
+                        variant="destructive" 
+                        onClick={() => setIsCancelModalOpen(true)}
+                        disabled={isCancelling}
+                      >
+                        {isCancelling ? 'Cancelling...' : 'Cancel Subscription'}
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <p>You don't have an active subscription.</p>
+                  <StripeBuyButton 
+                    buyButtonId={process.env.NEXT_PUBLIC_STRIPE_BUTTON_ID || ''}
+                    publishableKey={process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || ''}
+                  />
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="account">
+          <Card>
+            <CardHeader>
+              <CardTitle>Account Information</CardTitle>
+              <CardDescription>Manage your personal account details</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4 mb-6">
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input id="email" value={user?.email || ''} disabled />
+                  <p className="text-sm text-muted-foreground">Your email address cannot be changed</p>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="user-id">User ID</Label>
+                  <Input id="user-id" value={user?.id || ''} disabled />
+                  <p className="text-sm text-muted-foreground">Your unique user identifier</p>
+                </div>
+              </div>
+              
+              <Separator className="my-6" />
+              
+              <AccountManagement />
+            </CardContent>
+            <CardFooter>
+              <Button variant="outline" onClick={() => router.push('/reset-password')}>
+                Reset Password
+              </Button>
+            </CardFooter>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="general">
+          <Card>
+            <CardHeader>
+              <CardTitle>General Settings</CardTitle>
+              <CardDescription>Manage your general application preferences.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-2">
+                <Label htmlFor="language">Language</Label>
+                <Select 
+                  value={preferences.language}
+                  onValueChange={(value) => setPreferences({...preferences, language: value})}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a language" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="english">English</SelectItem>
+                    <SelectItem value="spanish">Spanish</SelectItem>
+                    <SelectItem value="french">French</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-sm text-muted-foreground">Choose your preferred language for the application</p>
+              </div>
+            </CardContent>
+            <CardFooter>
+              <Button onClick={handleSavePreferences} disabled={isSaving}>
+                {isSaving ? 'Saving...' : 'Save Changes'}
+              </Button>
+            </CardFooter>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="notifications">
+          <Card>
+            <CardHeader>
+              <CardTitle>Notification Settings</CardTitle>
+              <CardDescription>Manage how you receive notifications.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label htmlFor="email-notifications">Email Notifications</Label>
+                  <p className="text-sm text-muted-foreground">Receive notifications via email</p>
+                </div>
+                <Switch 
+                  id="email-notifications" 
+                  checked={preferences.email_notifications}
+                  onCheckedChange={(checked) => setPreferences({...preferences, email_notifications: checked})}
+                />
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label htmlFor="marketing-emails">Marketing Emails</Label>
+                  <p className="text-sm text-muted-foreground">Receive promotional emails and updates</p>
+                </div>
+                <Switch 
+                  id="marketing-emails" 
+                  checked={false}
+                  disabled
+                />
+              </div>
+            </CardContent>
+            <CardFooter>
+              <Button onClick={handleSavePreferences} disabled={isSaving}>
+                {isSaving ? 'Saving...' : 'Save Changes'}
+              </Button>
+            </CardFooter>
+          </Card>
+        </TabsContent>
+      </Tabs>
+      
+      <Toaster />
+    </div>
   );
 }
 
 export default function ProfilePage() {
   return (
-    <Suspense fallback={<LoadingSpinner />}>
-      <ProfileContent />
-    </Suspense>
+    <ErrorBoundary fallback={<div>Something went wrong</div>}>
+      <Suspense fallback={<LoadingSpinner />}>
+        <ProfileContent />
+      </Suspense>
+    </ErrorBoundary>
   );
 } 
