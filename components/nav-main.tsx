@@ -37,22 +37,32 @@ export function NavMain({ items }: NavMainProps) {
   const pathname = usePathname()
   const { state } = useSidebar()
   const isCollapsed = state === "collapsed"
-  const [openItems, setOpenItems] = React.useState<string[]>([])
+  
+  // Initialize with active items open
+  const [openItems, setOpenItems] = React.useState<Record<string, boolean>>(() => {
+    const initialState: Record<string, boolean> = {};
+    items.forEach(item => {
+      const isActive = item.isActive || pathname === item.url || pathname?.startsWith(`${item.url}/`);
+      if (item.items?.length && isActive) {
+        initialState[item.url] = true;
+      }
+    });
+    return initialState;
+  });
 
   // Close all dropdowns when sidebar collapses
   React.useEffect(() => {
     if (isCollapsed) {
-      setOpenItems([])
+      setOpenItems({});
     }
-  }, [isCollapsed])
+  }, [isCollapsed]);
 
   const handleToggle = (url: string, isOpen: boolean) => {
-    if (isOpen) {
-      setOpenItems((prev) => [...prev, url])
-    } else {
-      setOpenItems((prev) => prev.filter(item => item !== url))
-    }
-  }
+    setOpenItems(prev => ({
+      ...prev,
+      [url]: isOpen
+    }));
+  };
 
   return (
     <SidebarMenu>
@@ -77,7 +87,7 @@ export function NavMain({ items }: NavMainProps) {
           <Collapsible 
             key={item.url} 
             defaultOpen={isActive && !isCollapsed}
-            open={!isCollapsed && openItems.includes(item.url)}
+            open={!isCollapsed && openItems[item.url]}
             onOpenChange={(open) => handleToggle(item.url, open)}
             disabled={isCollapsed}
           >
