@@ -3,12 +3,14 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
+import { useTheme } from 'next-themes';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
+import { toast } from '@/components/ui/use-toast';
 
 function LoadingSpinner() {
   return (
@@ -21,12 +23,32 @@ function LoadingSpinner() {
 function SettingsContent() {
   const { user, supabase } = useAuth();
   const router = useRouter();
+  const { theme, setTheme } = useTheme();
   const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
   const [preferences, setPreferences] = useState({
     email_notifications: true,
     dark_mode: false,
     language: 'english'
   });
+
+  // Effect to sync theme with preferences when component mounts
+  useEffect(() => {
+    if (preferences.dark_mode) {
+      setTheme('dark');
+    } else {
+      setTheme('light');
+    }
+  }, [preferences.dark_mode, setTheme]);
+
+  // Effect to sync preferences with theme when theme changes externally
+  useEffect(() => {
+    if (theme === 'dark' && !preferences.dark_mode) {
+      setPreferences(prev => ({ ...prev, dark_mode: true }));
+    } else if (theme === 'light' && preferences.dark_mode) {
+      setPreferences(prev => ({ ...prev, dark_mode: false }));
+    }
+  }, [theme, preferences.dark_mode]);
 
   useEffect(() => {
     if (!user) {
@@ -43,11 +65,15 @@ function SettingsContent() {
           .single();
 
         if (data) {
+          const darkMode = data.dark_mode ?? false;
           setPreferences({
             email_notifications: data.email_notifications ?? true,
-            dark_mode: data.dark_mode ?? false,
+            dark_mode: darkMode,
             language: data.language ?? 'english'
           });
+          
+          // Set theme based on stored preference
+          setTheme(darkMode ? 'dark' : 'light');
         }
       } catch (error) {
         console.error('Error fetching preferences:', error);
@@ -57,13 +83,18 @@ function SettingsContent() {
     };
 
     fetchPreferences();
-  }, [user, router, supabase]);
+  }, [user, router, supabase, setTheme]);
+
+  const handleDarkModeToggle = (checked: boolean) => {
+    setPreferences({...preferences, dark_mode: checked});
+    setTheme(checked ? 'dark' : 'light');
+  };
 
   const handleSavePreferences = async () => {
     if (!user) return;
 
     try {
-      setIsLoading(true);
+      setIsSaving(true);
       const { error } = await supabase
         .from('user_preferences')
         .upsert({
@@ -75,10 +106,20 @@ function SettingsContent() {
         });
 
       if (error) throw error;
+      
+      toast({
+        title: "Settings saved",
+        description: "Your preferences have been updated successfully.",
+      });
     } catch (error) {
       console.error('Error saving preferences:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save preferences. Please try again.",
+        variant: "destructive",
+      });
     } finally {
-      setIsLoading(false);
+      setIsSaving(false);
     }
   };
 
@@ -112,7 +153,7 @@ function SettingsContent() {
                 <Switch 
                   id="dark-mode" 
                   checked={preferences.dark_mode}
-                  onCheckedChange={(checked) => setPreferences({...preferences, dark_mode: checked})}
+                  onCheckedChange={handleDarkModeToggle}
                 />
               </div>
               
@@ -131,7 +172,16 @@ function SettingsContent() {
               </div>
             </CardContent>
             <CardFooter>
-              <Button onClick={handleSavePreferences}>Save Changes</Button>
+              <Button onClick={handleSavePreferences} disabled={isSaving}>
+                {isSaving ? (
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+                    <span>Saving...</span>
+                  </div>
+                ) : (
+                  'Save Changes'
+                )}
+              </Button>
             </CardFooter>
           </Card>
         </TabsContent>
