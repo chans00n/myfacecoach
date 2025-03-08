@@ -179,151 +179,149 @@ export const LiftDetail: React.FC<LiftDetailProps> = ({ workout }) => {
 
   return (
     <>
-      <div className="container mx-auto py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Lift Summary */}
-          <div className="lg:col-span-1">
-            <Card className="sticky top-6">
-              <div 
-                className="relative h-48 w-full cursor-pointer"
-                onClick={() => workout.videoUrl && setVideoModalOpen(true)}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Lift Summary */}
+        <div className="lg:col-span-1">
+          <Card className="sticky top-6">
+            <div 
+              className="relative h-48 w-full cursor-pointer"
+              onClick={() => workout.videoUrl && setVideoModalOpen(true)}
+            >
+              <Image
+                src={workout.imageUrl}
+                alt={workout.title}
+                fill
+                className="object-cover"
+                priority
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+              {workout.videoUrl && (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="bg-primary/80 rounded-full p-3 shadow-lg transform transition-transform hover:scale-110">
+                    <Play className="h-8 w-8 text-white" />
+                  </div>
+                </div>
+              )}
+              <Badge 
+                className={`absolute top-3 right-3 ${getLevelColor(workout.level.value)}`}
+                variant="outline"
               >
-                <Image
-                  src={workout.imageUrl}
-                  alt={workout.title}
-                  fill
-                  className="object-cover"
-                  priority
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                {workout.videoUrl && (
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="bg-primary/80 rounded-full p-3 shadow-lg transform transition-transform hover:scale-110">
-                      <Play className="h-8 w-8 text-white" />
+                {workout.level.label}
+              </Badge>
+            </div>
+            
+            <CardHeader>
+              <CardTitle>{workout.title}</CardTitle>
+              <CardDescription>{workout.description}</CardDescription>
+            </CardHeader>
+            
+            <CardContent>
+              <div className="space-y-3">
+                <div className="flex items-center text-sm">
+                  <Clock className="mr-2 h-4 w-4" />
+                  <span>{workout.totalDuration} minutes total</span>
+                </div>
+                <div className="flex items-center text-sm">
+                  <Calendar className="mr-2 h-4 w-4" />
+                  <span>{formattedDate}</span>
+                </div>
+                <div className="flex items-center text-sm">
+                  <Dumbbell className="mr-2 h-4 w-4" />
+                  <span>{workout.level.label} Level</span>
+                </div>
+                
+                {workout.isTexasCardioDay && (
+                  <div className="flex items-start mt-4 p-3 bg-blue-50 text-blue-800 rounded-md">
+                    <Info className="h-5 w-5 mr-2 mt-0.5 flex-shrink-0" />
+                    <div className="text-sm">
+                      <p className="font-medium">Texas Cardio Day</p>
+                      <p>Today focuses on massage techniques to boost circulation and give your facial muscles a break from lifting.</p>
                     </div>
                   </div>
                 )}
-                <Badge 
-                  className={`absolute top-3 right-3 ${getLevelColor(workout.level.value)}`}
-                  variant="outline"
-                >
-                  {workout.level.label}
-                </Badge>
+                
+                {workout.benefits && workout.benefits.length > 0 && (
+                  <div className="mt-4">
+                    <h4 className="font-medium mb-2">Benefits</h4>
+                    <ul className="space-y-1">
+                      {workout.benefits.map((benefit, i) => (
+                        <li key={i} className="flex items-start text-sm">
+                          <CheckCircle2 className="h-4 w-4 mr-2 mt-0.5 text-green-600" />
+                          <span>{benefit}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </div>
+            </CardContent>
+            
+            <CardFooter>
+              <Button 
+                className="w-full"
+                onClick={() => workout.videoUrl && setVideoModalOpen(true)}
+                disabled={!workout.videoUrl}
+              >
+                {workout.videoUrl ? 'Start Lift' : 'No Video Available'}
+              </Button>
+            </CardFooter>
+          </Card>
+        </div>
+        
+        {/* Lift Details */}
+        <div className="lg:col-span-2">
+          <Tabs defaultValue="all" className="w-full">
+            <TabsList className="grid w-full grid-cols-4">
+              <TabsTrigger value="all">All Steps</TabsTrigger>
+              <TabsTrigger value="warm-up">Warm-Up</TabsTrigger>
+              <TabsTrigger value="main">Main Lift</TabsTrigger>
+              <TabsTrigger value="cool-down">Cool-Down</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="all" className="space-y-8 mt-6">
+              <WorkoutSection 
+                title={workout.sections.warmUp.title}
+                description={workout.sections.warmUp.description}
+                exercises={workout.sections.warmUp.exercises}
+              />
               
-              <CardHeader>
-                <CardTitle>{workout.title}</CardTitle>
-                <CardDescription>{workout.description}</CardDescription>
-              </CardHeader>
+              <WorkoutSection 
+                title={workout.sections.mainWorkout.title}
+                description={workout.sections.mainWorkout.description}
+                exercises={workout.sections.mainWorkout.exercises}
+              />
               
-              <CardContent>
-                <div className="space-y-3">
-                  <div className="flex items-center text-sm">
-                    <Clock className="mr-2 h-4 w-4" />
-                    <span>{workout.totalDuration} minutes total</span>
-                  </div>
-                  <div className="flex items-center text-sm">
-                    <Calendar className="mr-2 h-4 w-4" />
-                    <span>{formattedDate}</span>
-                  </div>
-                  <div className="flex items-center text-sm">
-                    <Dumbbell className="mr-2 h-4 w-4" />
-                    <span>{workout.level.label} Level</span>
-                  </div>
-                  
-                  {workout.isTexasCardioDay && (
-                    <div className="flex items-start mt-4 p-3 bg-blue-50 text-blue-800 rounded-md">
-                      <Info className="h-5 w-5 mr-2 mt-0.5 flex-shrink-0" />
-                      <div className="text-sm">
-                        <p className="font-medium">Texas Cardio Day</p>
-                        <p>Today focuses on massage techniques to boost circulation and give your facial muscles a break from lifting.</p>
-                      </div>
-                    </div>
-                  )}
-                  
-                  {workout.benefits && workout.benefits.length > 0 && (
-                    <div className="mt-4">
-                      <h4 className="font-medium mb-2">Benefits</h4>
-                      <ul className="space-y-1">
-                        {workout.benefits.map((benefit, i) => (
-                          <li key={i} className="flex items-start text-sm">
-                            <CheckCircle2 className="h-4 w-4 mr-2 mt-0.5 text-green-600" />
-                            <span>{benefit}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-              
-              <CardFooter>
-                <Button 
-                  className="w-full"
-                  onClick={() => workout.videoUrl && setVideoModalOpen(true)}
-                  disabled={!workout.videoUrl}
-                >
-                  {workout.videoUrl ? 'Start Lift' : 'No Video Available'}
-                </Button>
-              </CardFooter>
-            </Card>
-          </div>
-          
-          {/* Lift Details */}
-          <div className="lg:col-span-2">
-            <Tabs defaultValue="all" className="w-full">
-              <TabsList className="grid w-full grid-cols-4">
-                <TabsTrigger value="all">All Steps</TabsTrigger>
-                <TabsTrigger value="warm-up">Warm-Up</TabsTrigger>
-                <TabsTrigger value="main">Main Lift</TabsTrigger>
-                <TabsTrigger value="cool-down">Cool-Down</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="all" className="space-y-8 mt-6">
-                <WorkoutSection 
-                  title={workout.sections.warmUp.title}
-                  description={workout.sections.warmUp.description}
-                  exercises={workout.sections.warmUp.exercises}
-                />
-                
-                <WorkoutSection 
-                  title={workout.sections.mainWorkout.title}
-                  description={workout.sections.mainWorkout.description}
-                  exercises={workout.sections.mainWorkout.exercises}
-                />
-                
-                <WorkoutSection 
-                  title={workout.sections.coolDown.title}
-                  description={workout.sections.coolDown.description}
-                  exercises={workout.sections.coolDown.exercises}
-                />
-              </TabsContent>
-              
-              <TabsContent value="warm-up" className="mt-6">
-                <WorkoutSection 
-                  title={workout.sections.warmUp.title}
-                  description={workout.sections.warmUp.description}
-                  exercises={workout.sections.warmUp.exercises}
-                />
-              </TabsContent>
-              
-              <TabsContent value="main" className="mt-6">
-                <WorkoutSection 
-                  title={workout.sections.mainWorkout.title}
-                  description={workout.sections.mainWorkout.description}
-                  exercises={workout.sections.mainWorkout.exercises}
-                />
-              </TabsContent>
-              
-              <TabsContent value="cool-down" className="mt-6">
-                <WorkoutSection 
-                  title={workout.sections.coolDown.title}
-                  description={workout.sections.coolDown.description}
-                  exercises={workout.sections.coolDown.exercises}
-                />
-              </TabsContent>
-            </Tabs>
-          </div>
+              <WorkoutSection 
+                title={workout.sections.coolDown.title}
+                description={workout.sections.coolDown.description}
+                exercises={workout.sections.coolDown.exercises}
+              />
+            </TabsContent>
+            
+            <TabsContent value="warm-up" className="mt-6">
+              <WorkoutSection 
+                title={workout.sections.warmUp.title}
+                description={workout.sections.warmUp.description}
+                exercises={workout.sections.warmUp.exercises}
+              />
+            </TabsContent>
+            
+            <TabsContent value="main" className="mt-6">
+              <WorkoutSection 
+                title={workout.sections.mainWorkout.title}
+                description={workout.sections.mainWorkout.description}
+                exercises={workout.sections.mainWorkout.exercises}
+              />
+            </TabsContent>
+            
+            <TabsContent value="cool-down" className="mt-6">
+              <WorkoutSection 
+                title={workout.sections.coolDown.title}
+                description={workout.sections.coolDown.description}
+                exercises={workout.sections.coolDown.exercises}
+              />
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
       
