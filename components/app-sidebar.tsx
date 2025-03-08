@@ -152,7 +152,11 @@ export function AppSidebar({ className, ...props }: React.ComponentProps<typeof 
   };
 
   return (
-    <Sidebar className={cn("border-r", className)} {...props}>
+    <Sidebar 
+      className={cn("border-r", className)} 
+      collapsible="icon"
+      {...props}
+    >
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>

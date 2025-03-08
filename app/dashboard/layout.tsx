@@ -11,7 +11,7 @@ export default function DashboardLayout({
 }>) {
   return (
     <SidebarProvider defaultOpen={true}>
-      <div className="grid min-h-screen w-full lg:grid-cols-[280px_1fr]">
+      <div className="grid min-h-screen w-full lg:grid-cols-[auto_1fr]">
         <AppSidebar className="hidden lg:block" />
         <div className="flex flex-col">
           <SiteHeader />

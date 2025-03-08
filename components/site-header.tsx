@@ -56,10 +56,22 @@ export function SiteHeader({ className }: React.HTMLAttributes<HTMLElement>) {
   return (
     <header className={cn("border-b bg-background", className)}>
       <div className="flex h-16 items-center gap-4 px-6">
+        {/* Mobile sidebar toggle */}
         <Button
           variant="outline"
           size="icon"
           className="mr-2 h-8 w-8 lg:hidden"
+          onClick={toggleSidebar}
+        >
+          <SidebarIcon className="h-4 w-4" />
+          <span className="sr-only">Toggle sidebar</span>
+        </Button>
+        
+        {/* Desktop sidebar toggle */}
+        <Button
+          variant="outline"
+          size="icon"
+          className="mr-2 h-8 w-8 hidden lg:flex"
           onClick={toggleSidebar}
         >
           <SidebarIcon className="h-4 w-4" />
