@@ -113,8 +113,14 @@ function ProfileContent() {
         throw new Error('No subscription ID found');
       }
       
+      console.log('Checking subscription status for ID:', subscription.stripe_subscription_id);
+      console.log('Current subscription data:', subscription);
+      
       await checkWithStripe(subscription.stripe_subscription_id);
       await fetchSubscription();
+      
+      // Force a page refresh to ensure we get the latest data
+      window.location.reload();
       
       toast({
         title: "Success",
@@ -279,7 +285,11 @@ function ProfileContent() {
                   <div>
                     <h3 className="text-sm font-medium text-muted-foreground">Billing Period</h3>
                     <p className="mt-1 font-medium">
-                      {subscription.interval === 'month' ? 'Monthly' : 'Yearly'}
+                      {subscription.interval && subscription.interval !== 'year' && subscription.interval !== 'yearly' 
+                        ? 'Monthly' 
+                        : subscription.interval === 'year' || subscription.interval === 'yearly'
+                          ? 'Yearly'
+                          : 'Monthly' /* Default to Monthly if interval is missing or unknown */}
                     </p>
                   </div>
                   <div>

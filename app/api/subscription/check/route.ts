@@ -213,7 +213,19 @@ export const POST = withCors(async function POST(request: NextRequest) {
       
       // Get the price details
       const priceData = subscription.items.data[0]?.price;
-      const interval = priceData?.recurring?.interval || 'month';
+      
+      // Force log the raw price data to see exactly what's coming from Stripe
+      console.log('Raw price data from Stripe:', JSON.stringify(priceData, null, 2));
+      
+      // Explicitly check the recurring interval
+      let interval = 'month'; // Default to monthly
+      if (priceData?.recurring?.interval) {
+        interval = priceData.recurring.interval;
+        console.log('Found interval in price data:', interval);
+      } else {
+        console.log('No interval found in price data, using default:', interval);
+      }
+      
       const amount = priceData?.unit_amount || 1999; // Default to $19.99 if not available
       const currency = priceData?.currency || 'usd';
       
@@ -225,7 +237,7 @@ export const POST = withCors(async function POST(request: NextRequest) {
       
       // Update the subscription in Supabase
       try {
-        await supabaseAdmin
+        const updateResult = await supabaseAdmin
           .from('subscriptions')
           .update({
             status: subscription.status,
@@ -240,6 +252,16 @@ export const POST = withCors(async function POST(request: NextRequest) {
           .eq('stripe_subscription_id', stripeSubscriptionId);
         
         console.log('Updated subscription in Supabase with interval:', interval, 'and amount:', amount);
+        console.log('Update result:', updateResult);
+        
+        // Double-check the updated record
+        const { data: updatedSubscription } = await supabaseAdmin
+          .from('subscriptions')
+          .select('*')
+          .eq('stripe_subscription_id', stripeSubscriptionId)
+          .single();
+        
+        console.log('Verified updated subscription in Supabase:', updatedSubscription);
       } catch (error) {
         console.error('Error updating subscription in Supabase:', error);
       }
