@@ -326,5 +326,5 @@ export const getTodayWorkout = (): Workout => {
     ? `Texas Cardio ${dayNames[dayOfWeek]}`
     : `${dayNames[dayOfWeek]} Facial Fitness`;
   
-  return createMockWorkout('today-workout', title, level, isTexasCardioDay, today);
+  return createMockWorkout('today', title, level, isTexasCardioDay, today);
 }; 

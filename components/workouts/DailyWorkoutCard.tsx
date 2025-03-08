@@ -59,7 +59,7 @@ export const DailyLiftCard: React.FC<DailyLiftProps> = ({
   };
 
   // Determine the workout URL
-  const liftUrl = id === 'today-workout' ? '/workouts/today' : `/workouts/${id}`;
+  const liftUrl = id === 'today-workout' || id === 'today' ? '/workouts/today' : `/workouts/${id}`;
 
   return (
     <>
@@ -129,7 +129,7 @@ export const DailyLiftCard: React.FC<DailyLiftProps> = ({
             </Button>
           )}
           <Button asChild variant="outline" className="flex-1">
-            <Link href={`/lifts/${id}`}>
+            <Link href={liftUrl}>
               Details <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
           </Button>
