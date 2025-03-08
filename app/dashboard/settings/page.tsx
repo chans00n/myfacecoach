@@ -3,6 +3,7 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
+import { useTheme } from 'next-themes';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -24,6 +25,7 @@ function LoadingSpinner() {
 function SettingsContent() {
   const { user, supabase } = useAuth();
   const router = useRouter();
+  const { theme, setTheme } = useTheme();
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [preferences, setPreferences] = useState({
@@ -31,6 +33,15 @@ function SettingsContent() {
     dark_mode: false,
     language: 'english'
   });
+
+  // Effect to sync theme with preferences when component mounts
+  useEffect(() => {
+    if (preferences.dark_mode) {
+      setTheme('dark');
+    } else {
+      setTheme('light');
+    }
+  }, [preferences.dark_mode, setTheme]);
 
   useEffect(() => {
     if (!user) {
@@ -62,6 +73,11 @@ function SettingsContent() {
 
     fetchPreferences();
   }, [user, router, supabase]);
+
+  const handleDarkModeToggle = (checked: boolean) => {
+    setPreferences({...preferences, dark_mode: checked});
+    setTheme(checked ? 'dark' : 'light');
+  };
 
   const handleSavePreferences = async () => {
     if (!user) return;
@@ -127,7 +143,7 @@ function SettingsContent() {
                 <Switch 
                   id="dark-mode" 
                   checked={preferences.dark_mode}
-                  onCheckedChange={(checked) => setPreferences({...preferences, dark_mode: checked})}
+                  onCheckedChange={handleDarkModeToggle}
                 />
               </div>
               

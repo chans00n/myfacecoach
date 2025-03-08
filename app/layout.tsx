@@ -5,6 +5,7 @@ import "./globals.css";
 import { AuthProvider } from '@/contexts/AuthContext';
 import ProtectedRoute from '@/contexts/ProtectedRoute';
 import { Analytics } from "@vercel/analytics/react"
+import { ThemeProvider } from "@/components/theme-provider";
 // import { PostHogProvider } from '@/contexts/PostHogContext';
 // import { PostHogErrorBoundary } from '@/components/PostHogErrorBoundary';
 
@@ -16,16 +17,18 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body className={geist.className}>
         <Analytics mode="auto" />
         {/* <PostHogErrorBoundary>
           <PostHogProvider> */}
-            <AuthProvider>   
+            <ThemeProvider>
+              <AuthProvider>   
                 <ProtectedRoute>
                   <main>{children}</main>
                 </ProtectedRoute>
-            </AuthProvider>
+              </AuthProvider>
+            </ThemeProvider>
           {/* </PostHogProvider>
         </PostHogErrorBoundary> */}
       </body>
