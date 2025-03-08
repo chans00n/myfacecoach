@@ -1,6 +1,6 @@
 "use client";
 
-import { Calendar, ArrowUpRight, ChevronRight, ChevronLeft, Clock, Flame } from "lucide-react";
+import { Calendar, ArrowUpRight, ChevronRight, ChevronLeft, Clock, Flame, ExternalLink } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import {
@@ -11,6 +11,7 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 import Image from "next/image";
+import { Button } from "@/components/ui/button";
 
 export interface WorkoutSession {
   id: string;
@@ -93,62 +94,81 @@ export function WorkoutGallery({
               <CarouselItem key={workout.id} className="basis-full md:basis-1/2 lg:basis-1/3">
                 <div 
                   className={cn(
-                    "p-4 rounded-xl cursor-pointer overflow-hidden",
+                    "p-4 rounded-xl overflow-hidden group",
                     "border border-border",
+                    "relative",
                     workout.id === activeWorkout 
                       ? "bg-primary/10 border-primary/50" 
                       : "bg-card hover:bg-card/80",
-                    "transition-colors"
+                    "transition-all duration-300"
                   )}
-                  onClick={() => setActiveWorkout(workout.id)}
                 >
-                  {/* Lift Image */}
-                  {workout.imageUrl && (
-                    <div className="relative w-full h-40 mb-3 rounded-lg overflow-hidden">
-                      <Image
-                        src={workout.imageUrl}
-                        alt={workout.title}
-                        fill
-                        className="object-cover transition-transform hover:scale-105"
-                      />
-                      {workout.completed && (
-                        <div className="absolute top-2 right-2 px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
+                  {/* Card content that selects the workout */}
+                  <div 
+                    className="cursor-pointer"
+                    onClick={() => setActiveWorkout(workout.id)}
+                  >
+                    {/* Lift Image */}
+                    {workout.imageUrl && (
+                      <div className="relative w-full h-40 mb-3 rounded-lg overflow-hidden">
+                        <Image
+                          src={workout.imageUrl}
+                          alt={workout.title}
+                          fill
+                          className="object-cover transition-transform group-hover:scale-105"
+                        />
+                        {workout.completed && (
+                          <div className="absolute top-2 right-2 px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
+                            Completed
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <Calendar className="w-4 h-4 text-muted-foreground" />
+                        <span className="text-sm font-medium text-muted-foreground">{workout.date}</span>
+                      </div>
+                      {!workout.imageUrl && workout.completed && (
+                        <span className="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
                           Completed
-                        </div>
+                        </span>
                       )}
                     </div>
-                  )}
-                  
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <Calendar className="w-4 h-4 text-muted-foreground" />
-                      <span className="text-sm font-medium text-muted-foreground">{workout.date}</span>
-                    </div>
-                    {!workout.imageUrl && workout.completed && (
-                      <span className="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
-                        Completed
-                      </span>
+                    <h4 className="text-base font-medium text-foreground">{workout.title}</h4>
+                    
+                    {/* Lift Brief */}
+                    {workout.brief && (
+                      <p className="mt-1 text-xs text-muted-foreground line-clamp-2">
+                        {workout.brief}
+                      </p>
                     )}
+                    
+                    <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
+                      <div className="flex items-center gap-1">
+                        <Clock className="w-3 h-3" />
+                        <span>{workout.duration}</span>
+                      </div>
+                      <span>•</span>
+                      <div className="flex items-center gap-1">
+                        <Flame className="w-3 h-3" />
+                        <span>{workout.calories} cal</span>
+                      </div>
+                    </div>
                   </div>
-                  <h4 className="text-base font-medium text-foreground">{workout.title}</h4>
                   
-                  {/* Lift Brief */}
-                  {workout.brief && (
-                    <p className="mt-1 text-xs text-muted-foreground line-clamp-2">
-                      {workout.brief}
-                    </p>
-                  )}
-                  
-                  <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
-                    <div className="flex items-center gap-1">
-                      <Clock className="w-3 h-3" />
-                      <span>{workout.duration}</span>
-                    </div>
-                    <span>•</span>
-                    <div className="flex items-center gap-1">
-                      <Flame className="w-3 h-3" />
-                      <span>{workout.calories} cal</span>
-                    </div>
+                  {/* Prominent View Details Button */}
+                  <div className="mt-4 pt-3 border-t border-border/50">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-colors"
+                      onClick={() => onViewDetails?.(workout.id)}
+                    >
+                      View Lift Details
+                      <ExternalLink className="ml-2 h-3 w-3" />
+                    </Button>
                   </div>
                 </div>
               </CarouselItem>
@@ -164,13 +184,6 @@ export function WorkoutGallery({
           
           <div className="flex items-center justify-between">
             <h4 className="text-sm font-medium text-foreground">Exercises</h4>
-            <button
-              onClick={() => onViewDetails?.(currentWorkout.id)}
-              className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
-            >
-              View Lift Details
-              <ArrowUpRight className="w-3 h-3" />
-            </button>
           </div>
 
           <div className="space-y-2">
