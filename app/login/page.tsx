@@ -33,15 +33,7 @@ export default function LoginPage() {
           className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.2] dark:grayscale"
           priority
         />
-        <div className="absolute inset-0 bg-black/40"></div>
-        <div className="absolute inset-0 flex flex-col items-start justify-center p-12">
-          <div className="max-w-md space-y-4 text-white">
-            <h1 className="text-4xl font-bold tracking-tight">Welcome to NextTemp</h1>
-            <p className="text-lg opacity-90">
-              The modern SaaS template with everything you need to build your next project.
-            </p>
-          </div>
-        </div>
+        <div className="absolute inset-0 bg-black/20"></div>
       </div>
     </div>
   )
