@@ -127,7 +127,7 @@ export default function TopBar() {
                   <CreditCard className="mr-2 h-4 w-4" />
                   <span>Billing</span>
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => router.push('/profile?tab=settings')}>
+                <DropdownMenuItem onClick={() => router.push('/profile?tab=general')}>
                   <Settings className="mr-2 h-4 w-4" />
                   <span>Settings</span>
                 </DropdownMenuItem>

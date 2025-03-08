@@ -79,7 +79,7 @@ export function NavUser({ user: propUser }: NavUserProps) {
             </Link>
           </DropdownMenuItem>
           <DropdownMenuItem asChild>
-            <Link href="/dashboard/settings">
+            <Link href="/dashboard/profile?tab=general">
               <Settings className="mr-2 h-4 w-4" />
               <span>Settings</span>
             </Link>

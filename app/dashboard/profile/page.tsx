@@ -76,6 +76,31 @@ function ProfileContent() {
     }
   }, []);
 
+  // Handle tab query parameter
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const tab = params.get('tab');
+    
+    if (tab && ['subscription', 'account', 'general', 'notifications'].includes(tab)) {
+      // Set the active tab based on the query parameter
+      const tabsElement = document.querySelector(`[data-state="active"][data-orientation="horizontal"][role="tablist"]`);
+      if (tabsElement) {
+        const tabButton = tabsElement.querySelector(`[value="${tab}"]`);
+        if (tabButton) {
+          (tabButton as HTMLButtonElement).click();
+        }
+      }
+      
+      // Remove the tab parameter from the URL to keep it clean
+      const newParams = new URLSearchParams(window.location.search);
+      newParams.delete('tab');
+      const newUrl = newParams.toString() 
+        ? `${window.location.pathname}?${newParams.toString()}`
+        : window.location.pathname;
+      window.history.replaceState({}, document.title, newUrl);
+    }
+  }, []);
+
   // Fetch user preferences
   useEffect(() => {
     if (!user) return;
