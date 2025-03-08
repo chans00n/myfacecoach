@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { LogOut, Settings, User } from "lucide-react"
+import { ChevronDown, LogOut, Settings, User } from "lucide-react"
 import Link from "next/link"
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -48,20 +48,25 @@ export function NavUser({ user: propUser }: NavUserProps) {
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" className={cn(
-            "flex items-center gap-2 p-0 h-auto hover:bg-transparent",
-            isCollapsed ? "w-8 justify-center" : "w-auto justify-start"
+            "flex items-center gap-2 p-0 h-auto w-full hover:bg-transparent",
+            isCollapsed ? "justify-center" : "justify-between"
           )}>
-            <Avatar className="h-8 w-8">
-              <AvatarImage src={avatarUrl} alt={displayName} />
-              <AvatarFallback>{initial}</AvatarFallback>
-            </Avatar>
-            <div className={cn(
-              "grid gap-0.5 text-sm transition-all duration-200 text-left",
-              isCollapsed ? "w-0 opacity-0" : "w-auto opacity-100"
-            )}>
-              <div className="font-medium">{displayName}</div>
-              <div className="text-xs text-muted-foreground">{email}</div>
+            <div className="flex items-center gap-2">
+              <Avatar className="h-8 w-8">
+                <AvatarImage src={avatarUrl} alt={displayName} />
+                <AvatarFallback>{initial}</AvatarFallback>
+              </Avatar>
+              <div className={cn(
+                "grid gap-0.5 text-sm transition-all duration-200 text-left",
+                isCollapsed ? "w-0 opacity-0" : "w-auto opacity-100"
+              )}>
+                <div className="font-medium">{displayName}</div>
+                <div className="text-xs text-muted-foreground">{email}</div>
+              </div>
             </div>
+            {!isCollapsed && (
+              <ChevronDown className="h-4 w-4 text-muted-foreground" />
+            )}
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
