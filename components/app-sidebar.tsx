@@ -153,18 +153,14 @@ export function AppSidebar({ className, ...props }: React.ComponentProps<typeof 
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
               <Link href="/">
-                <div className="flex aspect-square size-10 items-center justify-center">
+                <div className="flex items-center justify-center">
                   <Image 
                     src="/MYFC_logo.png" 
                     alt="MyFaceCoach Logo" 
-                    width={40} 
-                    height={40} 
+                    width={100} 
+                    height={100} 
                     className="h-auto w-auto"
                   />
-                </div>
-                <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold">MYFC</span>
-                  <span className="truncate text-xs">Dashboard</span>
                 </div>
               </Link>
             </SidebarMenuButton>
