@@ -40,6 +40,11 @@ import {
   RadialBar,
   RadialBarChart,
 } from "recharts";
+import { getTodayWorkout } from '@/utils/mockWorkouts';
+import DailyWorkoutCard from '@/components/workouts/DailyWorkoutCard';
+import { Button } from "@/components/ui/button";
+import { ArrowRight } from "lucide-react";
+import Link from 'next/link';
 
 const AUTH_TIMEOUT = 15000; // 15 seconds
 
@@ -311,59 +316,22 @@ export default function Dashboard() {
   const [authTimeout, setAuthTimeout] = useState(false);
   const [timeRange, setTimeRange] = useState("30d");
 
-  // Get greeting based on time of day
-  const getGreeting = () => {
-    const hour = new Date().getHours();
-    if (hour < 12) return "Good morning";
-    if (hour < 18) return "Good afternoon";
-    return "Good evening";
-  };
-
-  // Get user's first name
-  const getUserFirstName = () => {
-    // Check if user exists and has metadata
-    if (!user) return "";
-    
-    // Try to get name from user_metadata.full_name
-    if (user.user_metadata?.full_name) {
-      const fullName = user.user_metadata.full_name;
-      return fullName.split(" ")[0];
-    }
-    
-    // Try to get name from user_metadata.name
-    if (user.user_metadata?.name) {
-      const fullName = user.user_metadata.name;
-      return fullName.split(" ")[0];
-    }
-    
-    // Try to get name from email
-    if (user.email) {
-      const emailName = user.email.split("@")[0];
-      // Capitalize first letter and remove numbers/special chars for a nicer display
-      return emailName.replace(/[^a-zA-Z]/g, "").charAt(0).toUpperCase() + 
-             emailName.replace(/[^a-zA-Z]/g, "").slice(1);
-    }
-    
-    // Default fallback
-    return "there";
-  };
+  // Get today's workout
+  const todayWorkout = getTodayWorkout();
 
   // Filter chart data based on selected time range
-  const filteredChartData = chartData.filter((item) => {
-    const date = new Date(item.date);
-    const today = new Date();
-    let daysToSubtract = 30;
-    
-    if (timeRange === "7d") {
-      daysToSubtract = 7;
-    } else if (timeRange === "90d") {
-      daysToSubtract = 90;
+  const filteredChartData = (() => {
+    switch (timeRange) {
+      case "7d":
+        return chartData.slice(-7);
+      case "30d":
+        return chartData.slice(-30);
+      case "90d":
+        return chartData;
+      default:
+        return chartData.slice(-30);
     }
-    
-    const startDate = new Date();
-    startDate.setDate(today.getDate() - daysToSubtract);
-    return date >= startDate;
-  });
+  })();
 
   // Add new states for dashboard functionality
 
@@ -445,17 +413,38 @@ export default function Dashboard() {
     return () => clearTimeout(timer);
   }, [user, isAuthLoading, isTrialLoading]);
 
+  // Redirect if not authenticated
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (!isAuthLoading && !user) {
+        router.push('/login');
+      }
+    }, AUTH_TIMEOUT);
+
+    return () => clearTimeout(timer);
+  }, [user, isAuthLoading, isTrialLoading]);
+
+  // Helper functions
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return "Good morning";
+    if (hour < 18) return "Good afternoon";
+    return "Good evening";
+  };
+
+  const getUserFirstName = () => {
+    if (!user) return "";
+    const email = user.email || "";
+    return email.split("@")[0] || "there";
+  };
+
   // Loading state
   if (isAuthLoading || isTrialLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
+      <div className="flex items-center justify-center h-screen">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mb-4 mx-auto"></div>
-          <p>
-            {authTimeout ? 
-              "Taking longer than usual? Try refreshing the page 😊." :
-              "Verifying access..."}
-          </p>
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-muted-foreground">Loading your dashboard...</p>
         </div>
       </div>
     );
@@ -480,6 +469,66 @@ export default function Dashboard() {
                 {isInTrial ? "Trial Period" : "Premium Plan"}
               </span>
             </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Today's Workout Section */}
+      <div className="mb-8">
+        <h3 className="text-xl font-bold mb-4">Today's Workout</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Workout Card */}
+          <div className="md:col-span-2">
+            <DailyWorkoutCard 
+              id={todayWorkout.id}
+              title={todayWorkout.title}
+              description={todayWorkout.description}
+              imageUrl={todayWorkout.imageUrl}
+              duration={todayWorkout.totalDuration}
+              date={todayWorkout.date}
+              level={todayWorkout.level}
+            />
+          </div>
+          
+          {/* Methodology Highlight */}
+          <div>
+            <Card>
+              <CardHeader>
+                <CardTitle>MYFC Methodology</CardTitle>
+                <CardDescription>
+                  Understanding the science behind your facial fitness routine
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-sm">
+                  The My Face Coach methodology is a comprehensive, science-based approach that mirrors traditional body fitness principles. 
+                  Designed to help you achieve a more youthful, lifted, and defined appearance.
+                </p>
+                
+                <h3 className="font-medium text-sm mt-4">Today's Focus</h3>
+                {todayWorkout.isTexasCardioDay ? (
+                  <div className="bg-blue-50 p-3 rounded-md">
+                    <h4 className="font-medium text-sm">Texas Cardio Day</h4>
+                    <p className="text-xs mt-1">
+                      Today focuses on massage techniques to boost circulation and give your facial muscles a break from lifting.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="bg-green-50 p-3 rounded-md">
+                    <h4 className="font-medium text-sm">Full Facial Workout</h4>
+                    <p className="text-xs mt-1">
+                      Today's workout includes all three steps: warm-up, lifts, and cool-down for a complete facial fitness routine.
+                    </p>
+                  </div>
+                )}
+                
+                <Link href="/methodology">
+                  <Button variant="outline" className="w-full mt-2 text-xs" size="sm">
+                    Learn More <ArrowRight className="ml-1 h-3 w-3" />
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>
