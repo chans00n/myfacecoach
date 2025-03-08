@@ -15,25 +15,38 @@ export function StripeBuyButton({ buyButtonId, publishableKey, className }: Stri
   const router = useRouter();
 
   useEffect(() => {
-    const script = document.createElement('script');
-    script.src = 'https://js.stripe.com/v3/buy-button.js';
-    script.async = true;
-    document.body.appendChild(script);
+    // Only load the script if it's not already present
+    if (!document.querySelector('script[src="https://js.stripe.com/v3/buy-button.js"]')) {
+      const script = document.createElement('script');
+      script.src = 'https://js.stripe.com/v3/buy-button.js';
+      script.async = true;
+      document.body.appendChild(script);
+    }
 
     const handleMessage = (event: MessageEvent) => {
-      if (event.origin !== 'https://js.stripe.com') return;
+      // Accept messages from any Stripe domain
+      if (!event.origin.match(/^https:\/\/[^.]+\.stripe\.com$/)) {
+        return;
+      }
       
-      if (event.data.type === 'buy-button:success') {
-        console.log('Payment successful, redirecting...');
-        window.localStorage.setItem('stripe_payment_intent', event.data.payload.paymentIntentId);
-        router.push('/profile?payment=success');
-        router.refresh();
+      try {
+        // Ensure we have data and it's the expected format
+        if (event.data && event.data.type === 'buy-button:success') {
+          console.log('Payment successful, redirecting...');
+          if (event.data.payload && event.data.payload.paymentIntentId) {
+            window.localStorage.setItem('stripe_payment_intent', event.data.payload.paymentIntentId);
+          }
+          router.push('/dashboard/profile?success=true&message=' + encodeURIComponent('Your payment was successful! Your subscription is now active.'));
+          router.refresh();
+        }
+      } catch (error) {
+        console.error('Error processing Stripe message:', error);
       }
     };
 
     window.addEventListener('message', handleMessage);
     return () => {
-      document.body.removeChild(script);
+      // Don't remove the script as it might be used by other components
       window.removeEventListener('message', handleMessage);
     };
   }, [router]);
@@ -45,6 +58,10 @@ export function StripeBuyButton({ buyButtonId, publishableKey, className }: Stri
 
   if (!user) return null;
 
+  // Use a more specific success URL with query parameters
+  const successUrl = `${process.env.NEXT_PUBLIC_APP_URL || window.location.origin}/dashboard/profile?success=true&message=${encodeURIComponent('Your payment was successful! Your subscription is now active.')}`;
+  const cancelUrl = `${process.env.NEXT_PUBLIC_APP_URL || window.location.origin}/dashboard/profile?canceled=true`;
+
   return (
     <div
       className={className}
@@ -55,8 +72,8 @@ export function StripeBuyButton({ buyButtonId, publishableKey, className }: Stri
             publishable-key="${publishableKey}"
             client-reference-id="${user.id}"
             customer-email="${user.email}"
-            success-url="${process.env.NEXT_PUBLIC_APP_URL}/profile?payment=success"
-            cancel-url="${process.env.NEXT_PUBLIC_APP_URL}/pay?canceled=true"
+            success-url="${successUrl}"
+            cancel-url="${cancelUrl}"
           >
           </stripe-buy-button>
         `
