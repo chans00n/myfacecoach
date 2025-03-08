@@ -7,7 +7,7 @@ import { useSubscription, Subscription } from '@/hooks/useSubscription';
 import { AccountManagement } from '@/components/AccountManagement';
 import { ErrorBoundary } from 'react-error-boundary';
 import { StripeBuyButton } from '@/components/StripeBuyButton';
-import { FaCheckCircle, FaTimesCircle } from 'react-icons/fa';
+import { FaCheckCircle, FaTimesCircle, FaCreditCard } from 'react-icons/fa';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -194,6 +194,42 @@ function ProfileContent() {
     }
   };
 
+  // Add a function to open the Stripe Customer Portal
+  const openStripeCustomerPortal = async () => {
+    try {
+      // Get the current session
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        throw new Error('No active session found');
+      }
+      
+      const response = await fetch('/api/stripe/customer-portal', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to create customer portal session');
+      }
+
+      // Redirect to the Stripe Customer Portal
+      window.location.href = data.url;
+    } catch (error) {
+      console.error('Error opening Stripe Customer Portal:', error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : 'Failed to open Stripe Customer Portal',
+        variant: "destructive",
+      });
+    }
+  };
+
   if (isAuthLoading) {
     return <LoadingSpinner />;
   }
@@ -302,32 +338,14 @@ function ProfileContent() {
                     Sync with Stripe
                   </Button>
                   
-                  {subscription.status === 'active' && !subscription.cancel_at_period_end && (
-                    <Button
-                      variant="destructive"
-                      onClick={() => setIsCancelModalOpen(true)}
-                    >
-                      Cancel Subscription
-                    </Button>
-                  )}
-                  
-                  {subscription.status === 'active' && subscription.cancel_at_period_end && (
-                    <Button
-                      variant="default"
-                      onClick={handleReactivateSubscription}
-                      disabled={isReactivating}
-                      className="flex items-center gap-2"
-                    >
-                      {isReactivating ? (
-                        <>
-                          <div className="w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
-                          Reactivating...
-                        </>
-                      ) : (
-                        'Reactivate Subscription'
-                      )}
-                    </Button>
-                  )}
+                  <Button
+                    variant="default"
+                    onClick={openStripeCustomerPortal}
+                    className="flex items-center gap-2"
+                  >
+                    <FaCreditCard className="h-4 w-4" />
+                    Manage Billing
+                  </Button>
                 </div>
               </div>
             ) : (
