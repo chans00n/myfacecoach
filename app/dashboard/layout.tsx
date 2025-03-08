@@ -2,7 +2,7 @@
 
 import { AppSidebar } from "@/components/app-sidebar";
 import { SiteHeader } from "@/components/site-header";
-import { SidebarProvider } from "@/components/ui/sidebar";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 
 export default function DashboardLayout({
   children,
@@ -11,12 +11,14 @@ export default function DashboardLayout({
 }>) {
   return (
     <SidebarProvider defaultOpen={true}>
-      <div className="grid min-h-screen w-full lg:grid-cols-[auto_1fr]">
-        <AppSidebar className="hidden lg:block" />
-        <div className="flex flex-col">
-          <SiteHeader />
-          <main className="flex-1 overflow-auto p-6">{children}</main>
-        </div>
+      <div className="flex min-h-screen w-full">
+        <AppSidebar />
+        <SidebarInset>
+          <div className="flex flex-col">
+            <SiteHeader />
+            <main className="flex-1 overflow-auto p-6">{children}</main>
+          </div>
+        </SidebarInset>
       </div>
     </SidebarProvider>
   );

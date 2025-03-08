@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { SidebarIcon, Bell, LogOut } from "lucide-react"
+import { Bell, LogOut } from "lucide-react"
 import { usePathname } from "next/navigation"
 import Link from "next/link"
 
@@ -15,7 +15,8 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb"
 import { Button } from "@/components/ui/button"
-import { useSidebar } from "@/components/ui/sidebar"
+import { Separator } from "@/components/ui/separator"
+import { SidebarTrigger } from "@/components/ui/sidebar"
 import { useAuth } from "@/contexts/AuthContext"
 import {
   DropdownMenu,
@@ -29,7 +30,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { cn } from "@/lib/utils"
 
 export function SiteHeader({ className }: React.HTMLAttributes<HTMLElement>) {
-  const { toggleSidebar } = useSidebar()
   const pathname = usePathname()
   const { user, signOut } = useAuth()
 
@@ -54,41 +54,22 @@ export function SiteHeader({ className }: React.HTMLAttributes<HTMLElement>) {
   const breadcrumbs = generateBreadcrumbs()
 
   return (
-    <header className={cn("border-b bg-background", className)}>
-      <div className="flex h-16 items-center gap-4 px-6">
-        {/* Mobile sidebar toggle */}
-        <Button
-          variant="outline"
-          size="icon"
-          className="mr-2 h-8 w-8 lg:hidden"
-          onClick={toggleSidebar}
-        >
-          <SidebarIcon className="h-4 w-4" />
-          <span className="sr-only">Toggle sidebar</span>
-        </Button>
-        
-        {/* Desktop sidebar toggle */}
-        <Button
-          variant="outline"
-          size="icon"
-          className="mr-2 h-8 w-8 hidden lg:flex"
-          onClick={toggleSidebar}
-        >
-          <SidebarIcon className="h-4 w-4" />
-          <span className="sr-only">Toggle sidebar</span>
-        </Button>
+    <header className={cn("flex h-16 shrink-0 items-center border-b bg-background transition-[width,height] ease-linear", className)}>
+      <div className="flex items-center gap-2 px-6">
+        <SidebarTrigger className="-ml-1" />
+        <Separator orientation="vertical" className="mr-2 h-4" />
         
         {breadcrumbs.length > 0 && (
-          <Breadcrumb className="hidden md:flex">
+          <Breadcrumb>
             <BreadcrumbList>
-              <BreadcrumbItem>
+              <BreadcrumbItem className="hidden md:block">
                 <BreadcrumbLink asChild>
                   <Link href="/dashboard">Dashboard</Link>
                 </BreadcrumbLink>
               </BreadcrumbItem>
               {breadcrumbs.map((breadcrumb) => (
                 <React.Fragment key={breadcrumb.href}>
-                  <BreadcrumbSeparator />
+                  <BreadcrumbSeparator className="hidden md:block" />
                   <BreadcrumbItem>
                     {breadcrumb.isLast ? (
                       <BreadcrumbPage>{breadcrumb.title}</BreadcrumbPage>
@@ -103,41 +84,41 @@ export function SiteHeader({ className }: React.HTMLAttributes<HTMLElement>) {
             </BreadcrumbList>
           </Breadcrumb>
         )}
+      </div>
+      
+      <div className="ml-auto flex items-center gap-2 px-6">
+        <SearchForm className="hidden md:block" />
         
-        <div className="ml-auto flex items-center gap-2">
-          <SearchForm className="hidden md:block" />
-          
-          <Button variant="ghost" size="icon" className="h-8 w-8">
-            <Bell className="h-4 w-4" />
-            <span className="sr-only">Notifications</span>
-          </Button>
-          
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 rounded-full" size="icon">
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src={user?.user_metadata?.avatar_url} alt={user?.email || "User"} />
-                  <AvatarFallback>{user?.email?.charAt(0).toUpperCase() || "U"}</AvatarFallback>
-                </Avatar>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>My Account</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem asChild>
-                <Link href="/profile">Profile</Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href="/settings">Settings</Link>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => signOut()}>
-                <LogOut className="mr-2 h-4 w-4" />
-                <span>Log out</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
+        <Button variant="ghost" size="icon" className="h-8 w-8">
+          <Bell className="h-4 w-4" />
+          <span className="sr-only">Notifications</span>
+        </Button>
+        
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="h-8 w-8 rounded-full" size="icon">
+              <Avatar className="h-8 w-8">
+                <AvatarImage src={user?.user_metadata?.avatar_url} alt={user?.email || "User"} />
+                <AvatarFallback>{user?.email?.charAt(0).toUpperCase() || "U"}</AvatarFallback>
+              </Avatar>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuLabel>My Account</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem asChild>
+              <Link href="/profile">Profile</Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link href="/settings">Settings</Link>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => signOut()}>
+              <LogOut className="mr-2 h-4 w-4" />
+              <span>Log out</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </header>
   )
