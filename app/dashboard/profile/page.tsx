@@ -7,7 +7,7 @@ import { useSubscription, Subscription } from '@/hooks/useSubscription';
 import { AccountManagement } from '@/components/AccountManagement';
 import { ErrorBoundary } from 'react-error-boundary';
 import { StripeBuyButton } from '@/components/StripeBuyButton';
-import { FaCheckCircle, FaTimesCircle, FaCreditCard } from 'react-icons/fa';
+import { FaCheckCircle, FaCreditCard } from 'react-icons/fa';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -38,7 +38,6 @@ function ProfileContent() {
   const subscription = baseSubscription as ExtendedSubscription | null;
   const [isCancelling, setIsCancelling] = useState(false);
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
-  const [syncError, setSyncError] = useState<string | null>(null);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
   const [paymentMessage, setPaymentMessage] = useState('');
 
@@ -102,47 +101,6 @@ function ProfileContent() {
       });
     } finally {
       setIsCancelling(false);
-    }
-  };
-
-  const syncSubscriptionWithStripe = async () => {
-    setSyncError(null);
-    try {
-      // Get the current session
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session) {
-        throw new Error('No active session found');
-      }
-      
-      const response = await fetch('/api/subscription/sync', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`,
-        },
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to sync subscription');
-      }
-
-      toast({
-        title: "Success",
-        description: "Subscription synced successfully",
-      });
-      fetchSubscription();
-    } catch (error) {
-      console.error('Error syncing subscription:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Failed to sync subscription';
-      setSyncError(errorMessage);
-      toast({
-        title: "Error",
-        description: errorMessage,
-        variant: "destructive",
-      });
     }
   };
 
@@ -246,13 +204,6 @@ function ProfileContent() {
             </div>
           </CardHeader>
           <CardContent>
-            {syncError && (
-              <div className="mb-4 p-3 bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-200 rounded-md flex items-center gap-2">
-                <FaTimesCircle className="h-4 w-4" />
-                <p className="text-sm">{syncError}</p>
-              </div>
-            )}
-
             {subscription ? (
               <div className="space-y-4">
                 <div className="grid gap-4 md:grid-cols-2">
@@ -283,13 +234,6 @@ function ProfileContent() {
                 </div>
 
                 <div className="flex flex-wrap gap-3 mt-6">
-                  <Button
-                    variant="outline"
-                    onClick={syncSubscriptionWithStripe}
-                  >
-                    Sync with Stripe
-                  </Button>
-                  
                   <Button
                     variant="default"
                     onClick={openStripeCustomerPortal}
