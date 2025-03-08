@@ -1,24 +1,23 @@
 "use client"
 
 import * as React from "react"
-import {
-  BookOpen,
-  Command,
-  LifeBuoy,
-  Send,
-  Settings2,
-  User,
-  LayoutDashboard,
-  CreditCard,
-  FileText,
-  MessageSquare,
-} from "lucide-react"
+import Image from "next/image"
 import Link from "next/link"
+import {
+  AudioWaveform,
+  BookOpen,
+  Bot,
+  Frame,
+  GalleryVerticalEnd,
+  Map,
+  PieChart,
+  Settings2,
+  SquareTerminal,
+} from "lucide-react"
 import { cn } from "@/lib/utils"
 
 import { NavMain } from "@/components/nav-main"
 import { NavProjects } from "@/components/nav-projects"
-import { NavSecondary } from "@/components/nav-secondary"
 import { NavUser } from "@/components/nav-user"
 import {
   Sidebar,
@@ -28,133 +27,127 @@ import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
+  SidebarRail,
 } from "@/components/ui/sidebar"
-import { useAuth } from "@/contexts/AuthContext"
 
+// This is sample data.
 const data = {
+  user: {
+    name: "shadcn",
+    email: "m@example.com",
+    avatar: "/avatars/shadcn.jpg",
+  },
   navMain: [
     {
-      title: "Dashboard",
-      url: "/dashboard",
-      icon: LayoutDashboard,
+      title: "Playground",
+      url: "#",
+      icon: SquareTerminal,
       isActive: true,
-    },
-    {
-      title: "Profile",
-      url: "/profile",
-      icon: User,
       items: [
+        {
+          title: "History",
+          url: "#",
+        },
+        {
+          title: "Starred",
+          url: "#",
+        },
         {
           title: "Settings",
-          url: "/profile/settings",
-        },
-        {
-          title: "Preferences",
-          url: "/profile/preferences",
+          url: "#",
         },
       ],
     },
     {
-      title: "Billing",
-      url: "/billing",
-      icon: CreditCard,
+      title: "Models",
+      url: "#",
+      icon: Bot,
       items: [
         {
-          title: "Subscriptions",
-          url: "/billing/subscriptions",
+          title: "Genesis",
+          url: "#",
         },
         {
-          title: "Payment Methods",
-          url: "/billing/payment-methods",
+          title: "Explorer",
+          url: "#",
         },
         {
-          title: "Invoices",
-          url: "/billing/invoices",
+          title: "Quantum",
+          url: "#",
         },
       ],
     },
     {
-      title: "Documents",
-      url: "/documents",
-      icon: FileText,
+      title: "Documentation",
+      url: "#",
+      icon: BookOpen,
       items: [
         {
-          title: "All Documents",
-          url: "/documents/all",
+          title: "Introduction",
+          url: "#",
         },
         {
-          title: "Shared",
-          url: "/documents/shared",
+          title: "Get Started",
+          url: "#",
         },
         {
-          title: "Archived",
-          url: "/documents/archived",
+          title: "Tutorials",
+          url: "#",
+        },
+        {
+          title: "Changelog",
+          url: "#",
         },
       ],
     },
     {
       title: "Settings",
-      url: "/settings",
+      url: "#",
       icon: Settings2,
       items: [
         {
           title: "General",
-          url: "/settings/general",
+          url: "#",
         },
         {
-          title: "Security",
-          url: "/settings/security",
+          title: "Team",
+          url: "#",
         },
         {
-          title: "Notifications",
-          url: "/settings/notifications",
+          title: "Billing",
+          url: "#",
+        },
+        {
+          title: "Limits",
+          url: "#",
         },
       ],
     },
   ],
-  navSecondary: [
-    {
-      title: "Help & Support",
-      url: "/support",
-      icon: LifeBuoy,
-    },
-    {
-      title: "Feedback",
-      url: "/feedback",
-      icon: Send,
-    },
-    {
-      title: "Documentation",
-      url: "/docs",
-      icon: BookOpen,
-    },
-  ],
   projects: [
     {
-      name: "Recent Chats",
-      url: "/chats",
-      icon: MessageSquare,
+      name: "Design Engineering",
+      url: "#",
+      icon: Frame,
+    },
+    {
+      name: "Sales & Marketing",
+      url: "#",
+      icon: PieChart,
+    },
+    {
+      name: "Travel",
+      url: "#",
+      icon: Map,
     },
   ],
 }
 
 export function AppSidebar({ className, ...props }: React.ComponentProps<typeof Sidebar>) {
-  const { user } = useAuth();
-  
-  const userData = user ? {
-    name: user.email?.split('@')[0] || 'User',
-    email: user.email || '',
-    avatar: user.user_metadata?.avatar_url || '',
-  } : {
-    name: 'Guest',
-    email: '',
-    avatar: '',
-  };
-
   return (
     <Sidebar 
       className={cn("border-r", className)} 
-      collapsible="icon"
+      collapsible="icon" 
       {...props}
     >
       <SidebarHeader>
@@ -162,12 +155,18 @@ export function AppSidebar({ className, ...props }: React.ComponentProps<typeof 
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
               <Link href="/">
-                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                  <Command className="size-4" />
+                <div className="flex aspect-square size-10 items-center justify-center">
+                  <Image 
+                    src="/MYFC_logo.png" 
+                    alt="MyFaceCoach Logo" 
+                    width={40} 
+                    height={40} 
+                    className="h-auto w-auto"
+                  />
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold">NextTemp</span>
-                  <span className="truncate text-xs">SaaS Template</span>
+                  <span className="truncate font-semibold">MyFaceCoach</span>
+                  <span className="truncate text-xs">Dashboard</span>
                 </div>
               </Link>
             </SidebarMenuButton>
@@ -177,11 +176,12 @@ export function AppSidebar({ className, ...props }: React.ComponentProps<typeof 
       <SidebarContent>
         <NavMain items={data.navMain} />
         <NavProjects projects={data.projects} />
-        <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={userData} />
+        <NavUser user={data.user} />
       </SidebarFooter>
+      <SidebarRail />
     </Sidebar>
   )
 }
+
