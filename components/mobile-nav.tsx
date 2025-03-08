@@ -16,7 +16,7 @@ export function MobileNav({ className }: MobileNavProps) {
   // Define navigation items for mobile
   const navItems = [
     {
-      title: "Dashboard",
+      title: "Home",
       url: "/dashboard",
     },
     {
