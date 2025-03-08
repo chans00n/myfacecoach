@@ -13,7 +13,13 @@ import { usePathname } from "next/navigation";
 const geist = Geist({ subsets: ['latin'] });
 
 // List of routes where TopBar should not be shown
-const NO_TOPBAR_ROUTES = ['/login', '/signup', '/verify-email', '/reset-password', '/update-password'];
+const NO_TOPBAR_ROUTES = [
+  '/login', 
+  '/signup', 
+  '/verify-email', 
+  '/reset-password', 
+  '/update-password'
+];
 
 export default function RootLayout({
   children,
@@ -21,7 +27,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   const pathname = usePathname();
-  const showTopBar = !NO_TOPBAR_ROUTES.includes(pathname);
+  const showTopBar = !NO_TOPBAR_ROUTES.includes(pathname) && !pathname.startsWith('/dashboard');
 
   return (
     <html lang="en">
