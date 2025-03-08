@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { withCors } from '@/utils/cors';
-import { getUser } from '@/utils/supabase-auth';
+import { supabaseAdmin } from '@/utils/supabase-admin';
 
 /**
  * API endpoint to reactivate a user's subscription
@@ -9,61 +9,119 @@ import { getUser } from '@/utils/supabase-auth';
  */
 export const POST = withCors(async function POST(request: NextRequest) {
   try {
-    // Get the authenticated user
-    const { user, error: authError } = await getUser(request);
+    // Try to parse the request body
+    let subscriptionId: string | null = null;
+    let userId: string | null = null;
     
-    if (authError || !user) {
-      console.error('Authentication error:', authError);
-      return NextResponse.json(
-        { error: 'Authentication required' }, 
-        { status: 401 }
-      );
+    try {
+      // Check if the request has a body with subscriptionId or userId
+      const body = await request.json();
+      subscriptionId = body.subscriptionId || null;
+      userId = body.userId || null;
+    } catch (e) {
+      // If there's no body or it can't be parsed, that's okay
+      console.log('No request body or invalid JSON');
     }
     
-    // Get the user's subscription from Supabase
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-    
-    if (!supabaseUrl || !supabaseKey) {
-      console.error('Missing Supabase environment variables');
-      return NextResponse.json(
-        { error: 'Server configuration error' },
-        { status: 500 }
-      );
+    // If no subscriptionId was provided, try to get it from the user's session
+    if (!subscriptionId) {
+      console.log('No subscriptionId provided, trying to get from user session');
+      
+      // Get the user's subscription from Supabase
+      // First, we need to get the user ID from the session
+      if (!userId) {
+        // Create a cookie object from the request
+        const cookieHeader = request.headers.get('cookie') || '';
+        const cookies: Record<string, string> = {};
+        
+        cookieHeader.split(';').forEach(cookie => {
+          const parts = cookie.split('=');
+          if (parts.length >= 2) {
+            const name = parts[0].trim();
+            const value = parts.slice(1).join('=').trim();
+            cookies[name] = value;
+          }
+        });
+        
+        // Try to find any Supabase auth token
+        const possibleTokenNames = [
+          'sb-access-token',
+          'sb-refresh-token',
+          'sb-auth-token',
+          'sb:token',
+          'supabase-auth-token'
+        ];
+        
+        let authToken = null;
+        
+        for (const name of possibleTokenNames) {
+          if (cookies[name]) {
+            authToken = cookies[name];
+            console.log(`Found auth token in cookie: ${name}`);
+            break;
+          }
+        }
+        
+        // If no token found in cookies, check for Authorization header
+        if (!authToken) {
+          const authHeader = request.headers.get('authorization');
+          if (authHeader && authHeader.startsWith('Bearer ')) {
+            authToken = authHeader.substring(7);
+            console.log('Found auth token in Authorization header');
+          }
+        }
+        
+        if (authToken) {
+          try {
+            // Get the user from the token
+            const { data } = await supabaseAdmin.auth.getUser(authToken);
+            if (data.user) {
+              userId = data.user.id;
+              console.log('Got user ID from token:', userId);
+            }
+          } catch (e) {
+            console.error('Error getting user from token:', e);
+          }
+        }
+      }
+      
+      // If we have a userId, try to get their subscription
+      if (userId) {
+        try {
+          const { data } = await supabaseAdmin
+            .from('subscriptions')
+            .select('stripe_subscription_id')
+            .eq('user_id', userId)
+            .single();
+          
+          if (data?.stripe_subscription_id) {
+            subscriptionId = data.stripe_subscription_id;
+            console.log('Got subscriptionId from user:', subscriptionId);
+          }
+        } catch (e) {
+          console.error('Error getting subscription from user ID:', e);
+        }
+      }
     }
     
-    const supabaseClient = await import('@supabase/supabase-js')
-      .then(({ createClient }) => createClient(supabaseUrl, supabaseKey));
-    
-    const { data: subscriptionData, error: subError } = await supabaseClient
-      .from('subscriptions')
-      .select('stripe_subscription_id')
-      .eq('user_id', user.id)
-      .single();
-    
-    if (subError) {
-      console.error('Error fetching subscription:', subError);
+    // If we still don't have a subscriptionId, return an error
+    if (!subscriptionId) {
+      console.error('No subscription ID found');
       return NextResponse.json(
-        { error: 'Failed to fetch subscription' },
-        { status: 500 }
-      );
-    }
-    
-    if (!subscriptionData?.stripe_subscription_id) {
-      return NextResponse.json(
-        { error: 'No subscription found for this user' },
-        { status: 404 }
+        { error: 'Subscription ID is required' },
+        { status: 400 }
       );
     }
     
     // Forward the request to the stripe reactivate endpoint
+    console.log('Forwarding to stripe reactivate endpoint with subscriptionId:', subscriptionId);
     const stripeResponse = await fetch(new URL('/api/stripe/reactivate', request.url), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        subscriptionId: subscriptionData.stripe_subscription_id
+        subscriptionId
       }),
     });
     
