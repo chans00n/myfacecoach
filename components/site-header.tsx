@@ -63,14 +63,20 @@ export function SiteHeader({ className }: React.HTMLAttributes<HTMLElement>) {
         {breadcrumbs.length > 0 && (
           <Breadcrumb>
             <BreadcrumbList>
-              <BreadcrumbItem className="hidden md:block">
-                <BreadcrumbLink asChild>
-                  <Link href="/dashboard">Dashboard</Link>
-                </BreadcrumbLink>
-              </BreadcrumbItem>
+              {/* Only show MYFC as first item if we're not on the dashboard page */}
+              {!(pathname === "/dashboard" && breadcrumbs.length === 1) && (
+                <BreadcrumbItem className="hidden md:block">
+                  <BreadcrumbLink asChild>
+                    <Link href="/dashboard">MYFC</Link>
+                  </BreadcrumbLink>
+                </BreadcrumbItem>
+              )}
               {breadcrumbs.map((breadcrumb) => (
                 <React.Fragment key={breadcrumb.href}>
-                  <BreadcrumbSeparator className="hidden md:block" />
+                  {/* Only show separator if we're not on dashboard or this isn't the first item */}
+                  {(!(pathname === "/dashboard" && breadcrumb === breadcrumbs[0])) && (
+                    <BreadcrumbSeparator className="hidden md:block" />
+                  )}
                   <BreadcrumbItem>
                     {breadcrumb.isLast ? (
                       <BreadcrumbPage>{breadcrumb.title}</BreadcrumbPage>
