@@ -2,8 +2,8 @@
 import * as React from "react"
 
 import type {
-  ToastActionElement,
   ToastProps,
+  ToastActionElement,
 } from "@/components/ui/toast"
 
 const TOAST_LIMIT = 5
