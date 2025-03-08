@@ -1,6 +1,9 @@
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { toast } from '@/components/ui/use-toast';
 
 export function AccountManagement() {
   const { user, signOut } = useAuth();
@@ -30,72 +33,107 @@ export function AccountManagement() {
       
       await signOut();
       router.push('/login');
+      toast({
+        title: "Account deleted",
+        description: "Your account has been successfully deleted.",
+      });
     } catch (error) {
       console.error('Delete account error:', error);
       setError(error instanceof Error ? error.message : 'Failed to delete account');
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : 'Failed to delete account',
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
+      setIsDeleteModalOpen(false);
     }
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-8">
-      <h2 className="text-xl font-semibold mb-4">Account Management</h2>
-      
+    <div className="space-y-6">
       {/* User Information */}
-      <div className="mb-6 space-y-2">
-        <p><span className="font-medium">Email:</span> {user?.email}</p>
-        <p><span className="font-medium">Last Sign In:</span> {new Date(user?.last_sign_in_at || '').toLocaleString()}</p>
-        <p><span className="font-medium">Account Type:</span> {isOAuthUser ? 'Google Account' : 'Email Account'}</p>
-      </div>
-      
-      <div className="">
-        {!isOAuthUser && (
-          <button
-            onClick={() => router.push(`/reset-password?email=${encodeURIComponent(user?.email || '')}`)}
-            className="block w-full text-left px-4 py-2 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600"
-          >
-            Reset Password
-          </button>
-        )}
-
-        {/* <button
-          onClick={() => setIsDeleteModalOpen(true)}
-          className="w-full text-left px-4 py-2 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-200 dark:hover:bg-red-900/50"
-        >
-          Delete Account
-        </button> */}
-      </div>
-
-      {/* Delete Account Modal */}
-      {isDeleteModalOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full">
-            <h3 className="text-xl font-semibold mb-4">Delete Account?</h3>
-            <p className="text-gray-600 dark:text-gray-300 mb-6">
-              This action cannot be undone. All your data will be permanently deleted.
-            </p>
-            {error && (
-              <p className="text-red-500 mb-4">{error}</p>
-            )}
-            <div className="flex justify-end gap-4">
-              <button
-                onClick={() => setIsDeleteModalOpen(false)}
-                className="px-4 py-2 text-gray-600 dark:text-gray-300"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleDeleteAccount}
-                disabled={isLoading}
-                className="px-4 py-2 bg-red-500 text-white rounded-lg disabled:opacity-50"
-              >
-                {isLoading ? 'Deleting...' : 'Delete Account'}
-              </button>
-            </div>
+      <div className="space-y-2">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
+          <div>
+            <p className="text-sm font-medium text-muted-foreground">Email</p>
+            <p className="font-medium">{user?.email}</p>
+          </div>
+          <div>
+            <p className="text-sm font-medium text-muted-foreground">Last Sign In</p>
+            <p className="font-medium">{new Date(user?.last_sign_in_at || '').toLocaleString()}</p>
+          </div>
+          <div>
+            <p className="text-sm font-medium text-muted-foreground">Account Type</p>
+            <p className="font-medium">{isOAuthUser ? 'Google Account' : 'Email Account'}</p>
           </div>
         </div>
-      )}
+      </div>
+      
+      {/* Account Actions */}
+      <div className="flex flex-wrap gap-3">
+        <Button
+          variant="outline"
+          onClick={() => signOut()}
+        >
+          Sign Out
+        </Button>
+        
+        {!isOAuthUser && (
+          <Button
+            variant="secondary"
+            onClick={() => router.push('/update-password')}
+          >
+            Change Password
+          </Button>
+        )}
+        
+        <Button
+          variant="destructive"
+          onClick={() => setIsDeleteModalOpen(true)}
+        >
+          Delete Account
+        </Button>
+      </div>
+      
+      {/* Delete Account Modal */}
+      <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Account?</DialogTitle>
+            <DialogDescription>
+              This action cannot be undone. All your data will be permanently deleted.
+            </DialogDescription>
+          </DialogHeader>
+          
+          {error && <p className="text-red-500 mt-2">{error}</p>}
+          
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsDeleteModalOpen(false)}
+              disabled={isLoading}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDeleteAccount}
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  <span>Deleting...</span>
+                </div>
+              ) : (
+                'Delete Account'
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 } 
