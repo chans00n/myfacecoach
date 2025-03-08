@@ -1,7 +1,7 @@
 "use client";
 
 import { Calendar, ArrowUpRight, ChevronRight, ChevronLeft, Clock, Flame, ExternalLink } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import {
   Carousel,
@@ -52,6 +52,23 @@ export function WorkoutGallery({
   className
 }: WorkoutGalleryProps) {
   const [activeWorkout, setActiveWorkout] = useState<string>(workouts[0]?.id || "");
+  const [isMobile, setIsMobile] = useState(false);
+  
+  // Check if we're on mobile
+  useEffect(() => {
+    const checkIfMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    // Initial check
+    checkIfMobile();
+    
+    // Add event listener for window resize
+    window.addEventListener('resize', checkIfMobile);
+    
+    // Cleanup
+    return () => window.removeEventListener('resize', checkIfMobile);
+  }, []);
   
   const handleExerciseToggle = (workoutId: string, exerciseId: string) => {
     onToggleExercise?.(workoutId, exerciseId);
@@ -69,8 +86,8 @@ export function WorkoutGallery({
       )}
     >
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
+        <div className="mb-4 md:mb-0">
           <h3 className="text-lg font-semibold text-foreground">
             {title}
           </h3>
@@ -78,18 +95,23 @@ export function WorkoutGallery({
             {description}
           </p>
         </div>
+        
+        {/* Navigation controls - shown below title on mobile, to the right on desktop */}
+        <div className="flex items-center gap-2 z-10">
+          <CarouselPrevious className="static h-8 w-8 translate-x-0 translate-y-0 bg-background border-border" />
+          <CarouselNext className="static h-8 w-8 translate-x-0 translate-y-0 bg-background border-border" />
+        </div>
       </div>
 
       {/* Lift Carousel */}
       <div className="mb-6 relative">
-        <Carousel className="w-full">
-          <div className="absolute right-0 -top-12 flex items-center gap-2 z-10">
-            <CarouselPrevious className="static h-8 w-8 translate-x-0 translate-y-0 bg-background border-border" />
-            <CarouselNext className="static h-8 w-8 translate-x-0 translate-y-0 bg-background border-border" />
-          </div>
-          <CarouselContent>
+        <Carousel className="w-full" opts={{ align: isMobile ? "start" : "center", containScroll: "trimSnaps" }}>
+          <CarouselContent className="-ml-2 md:-ml-4">
             {workouts.map((workout) => (
-              <CarouselItem key={workout.id} className="basis-full md:basis-1/2 lg:basis-1/3">
+              <CarouselItem 
+                key={workout.id} 
+                className="pl-2 md:pl-4 basis-[85%] md:basis-1/2 lg:basis-1/3"
+              >
                 <div 
                   className={cn(
                     "p-4 rounded-xl overflow-hidden group",
