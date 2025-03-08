@@ -101,29 +101,12 @@ export function AppSidebar({ className, ...props }: React.ComponentProps<typeof 
     setCurrentTheme(resolvedTheme)
   }, [resolvedTheme])
 
-  // For debugging
-  useEffect(() => {
-    console.log("Theme state:", { resolvedTheme, theme, currentTheme })
-    
-    // Check if the HTML element has the dark class
-    const isDarkClass = document.documentElement.classList.contains('dark')
-    console.log("HTML dark class:", isDarkClass)
-    
-    // If there's a mismatch between the theme state and the HTML class, use the HTML class
-    if (isDarkClass && currentTheme !== 'dark') {
-      setCurrentTheme('dark')
-    } else if (!isDarkClass && currentTheme === 'dark') {
-      setCurrentTheme('light')
-    }
-  }, [resolvedTheme, theme, currentTheme])
-
   // Check localStorage directly
   useEffect(() => {
     // Function to get theme from localStorage
     const getThemeFromStorage = () => {
       try {
         const storedTheme = localStorage.getItem('theme_preference')
-        console.log("Theme from localStorage:", storedTheme)
         
         if (storedTheme) {
           return storedTheme
@@ -164,7 +147,7 @@ export function AppSidebar({ className, ...props }: React.ComponentProps<typeof 
       mediaQuery.removeEventListener('change', handleChange)
       window.removeEventListener('storage', handleChange)
     }
-  }, [currentTheme, setCurrentTheme])
+  }, []) // Remove currentTheme from dependency array to prevent infinite loop
 
   // Listen for theme toggle button clicks
   useEffect(() => {
@@ -172,7 +155,6 @@ export function AppSidebar({ className, ...props }: React.ComponentProps<typeof 
       // Short timeout to allow the theme to be updated
       setTimeout(() => {
         const isDark = document.documentElement.classList.contains('dark')
-        console.log("Theme button clicked, isDark:", isDark)
         setCurrentTheme(isDark ? 'dark' : 'light')
       }, 100)
     }
