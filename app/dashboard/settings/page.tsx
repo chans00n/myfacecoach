@@ -10,6 +10,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { toast } from '@/components/ui/use-toast';
+import { Toaster } from '@/components/ui/toaster';
 
 function LoadingSpinner() {
   return (
@@ -78,11 +80,18 @@ function SettingsContent() {
 
       if (error) throw error;
       
-      alert('Settings saved successfully');
+      toast({
+        title: "Settings saved",
+        description: "Your preferences have been updated successfully.",
+      });
       
     } catch (error) {
       console.error('Error saving preferences:', error);
-      alert('Error saving settings. Please try again.');
+      toast({
+        title: "Error saving settings",
+        description: "There was a problem saving your preferences. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setIsSaving(false);
     }
@@ -217,6 +226,8 @@ function SettingsContent() {
           </Card>
         </TabsContent>
       </Tabs>
+      
+      <Toaster />
     </div>
   );
 }
