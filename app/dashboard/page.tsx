@@ -609,254 +609,178 @@ export default function Dashboard() {
         </Card>
       </div>
 
-      {/* Workout Streak Tracker */}
-      <div className="mb-8">
-        <LiftStreakTracker liftDates={liftDates} />
+      {/* Lift Streak and User Activity Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        {/* Lift Streak Tracker */}
+        <div className="lg:col-span-1">
+          <LiftStreakTracker liftDates={liftDates} />
+        </div>
+
+        {/* User Activity Chart */}
+        <div className="lg:col-span-2">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <div className="space-y-1">
+                <CardTitle>User Activity</CardTitle>
+                <CardDescription>
+                  Active users, new signups, and engagement metrics
+                </CardDescription>
+              </div>
+              <Select defaultValue={timeRange} onValueChange={setTimeRange}>
+                <SelectTrigger
+                  className="w-[160px] rounded-lg"
+                  aria-label="Select time range"
+                >
+                  <SelectValue placeholder="Last 30 days" />
+                </SelectTrigger>
+                <SelectContent className="rounded-xl">
+                  <SelectItem value="7d" className="rounded-lg">
+                    Last 7 days
+                  </SelectItem>
+                  <SelectItem value="30d" className="rounded-lg">
+                    Last 30 days
+                  </SelectItem>
+                  <SelectItem value="90d" className="rounded-lg">
+                    Last 3 months
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </CardHeader>
+            <CardContent>
+              <ChartContainer
+                config={chartConfig}
+                className="aspect-auto h-[300px] w-full"
+              >
+                <AreaChart data={filteredChartData}>
+                  <defs>
+                    <linearGradient id="fillActive" x1="0" y1="0" x2="0" y2="1">
+                      <stop
+                        offset="5%"
+                        stopColor="var(--color-active)"
+                        stopOpacity={0.8}
+                      />
+                      <stop
+                        offset="95%"
+                        stopColor="var(--color-active)"
+                        stopOpacity={0.1}
+                      />
+                    </linearGradient>
+                    <linearGradient id="fillNew" x1="0" y1="0" x2="0" y2="1">
+                      <stop
+                        offset="5%"
+                        stopColor="var(--color-new)"
+                        stopOpacity={0.8}
+                      />
+                      <stop
+                        offset="95%"
+                        stopColor="var(--color-new)"
+                        stopOpacity={0.1}
+                      />
+                    </linearGradient>
+                    <linearGradient id="fillEngagement" x1="0" y1="0" x2="0" y2="1">
+                      <stop
+                        offset="5%"
+                        stopColor="var(--color-engagement)"
+                        stopOpacity={0.8}
+                      />
+                      <stop
+                        offset="95%"
+                        stopColor="var(--color-engagement)"
+                        stopOpacity={0.1}
+                      />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid vertical={false} />
+                  <XAxis
+                    dataKey="date"
+                    tickLine={false}
+                    axisLine={false}
+                    tickMargin={8}
+                    minTickGap={32}
+                    tickFormatter={(value) => {
+                      const date = new Date(value);
+                      return date.toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                      });
+                    }}
+                  />
+                  <ChartTooltip
+                    cursor={false}
+                    content={
+                      <ChartTooltipContent
+                        labelFormatter={(value) => {
+                          return new Date(value).toLocaleDateString("en-US", {
+                            month: "short",
+                            day: "numeric",
+                          });
+                        }}
+                        indicator="dot"
+                      />
+                    }
+                  />
+                  <Area
+                    dataKey="new"
+                    type="natural"
+                    fill="url(#fillNew)"
+                    stroke="var(--color-new)"
+                    stackId="a"
+                  />
+                  <Area
+                    dataKey="active"
+                    type="natural"
+                    fill="url(#fillActive)"
+                    stroke="var(--color-active)"
+                    stackId="a"
+                  />
+                  <Area
+                    dataKey="engagement"
+                    type="monotone"
+                    stroke="var(--color-engagement)"
+                    strokeWidth={2}
+                    dot={{ r: 2, strokeWidth: 2, fill: "var(--background)" }}
+                    activeDot={{ r: 4, strokeWidth: 0 }}
+                    fill="none"
+                  />
+                  <ChartLegend content={<ChartLegendContent />} />
+                </AreaChart>
+              </ChartContainer>
+            </CardContent>
+          </Card>
+        </div>
       </div>
 
-      {/* Dashboard Content */}
-      <div>
-        {/* Metrics Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {metricsChartData.map((metric, index) => (
-            <motion.div
-              key={metric.metric}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
-            >
-              <Card className="flex flex-col h-full">
-                <CardHeader className="items-center pb-0">
-                  <CardTitle>{metric.label}</CardTitle>
-                </CardHeader>
-                <CardContent className="flex-1 pb-0">
-                  <ChartContainer
-                    config={radialChartConfig}
-                    className="mx-auto aspect-square max-h-[180px]"
-                  >
-                    <RadialBarChart
-                      data={[metric]}
-                      startAngle={0}
-                      endAngle={250}
-                      innerRadius={60}
-                      outerRadius={80}
-                    >
-                      <PolarGrid
-                        gridType="circle"
-                        radialLines={false}
-                        stroke="none"
-                        className="first:fill-muted last:fill-background"
-                        polarRadius={[65, 55]}
-                      />
-                      <RadialBar dataKey="visitors" background cornerRadius={10} />
-                      <PolarRadiusAxis tick={false} tickLine={false} axisLine={false}>
-                        <Label
-                          content={({ viewBox }) => {
-                            if (viewBox && "cx" in viewBox && "cy" in viewBox) {
-                              return (
-                                <text
-                                  x={viewBox.cx}
-                                  y={viewBox.cy}
-                                  textAnchor="middle"
-                                  dominantBaseline="middle"
-                                >
-                                  <tspan
-                                    x={viewBox.cx}
-                                    y={viewBox.cy}
-                                    className="fill-foreground text-3xl font-bold"
-                                  >
-                                    {metric.value}
-                                  </tspan>
-                                </text>
-                              )
-                            }
-                          }}
-                        />
-                      </PolarRadiusAxis>
-                    </RadialBarChart>
-                  </ChartContainer>
-                </CardContent>
-                <CardFooter className="flex-col gap-1 text-sm pt-0">
-                  <div className="flex items-center gap-2 font-medium leading-none">
-                    <span className={metric.trend === 'up' ? 'text-primary' : 'text-destructive'}>
-                      {metric.trend === 'up' ? 'Trending up' : 'Trending down'} by {metric.change}
-                    </span>
-                    <TrendingUp className={`h-4 w-4 ${metric.trend === 'up' ? 'text-primary' : 'text-destructive'} ${metric.trend === 'down' ? 'rotate-180' : ''}`} />
-                  </div>
-                </CardFooter>
-              </Card>
-            </motion.div>
-          ))}
-        </div>
-
-        {/* Activity Feed */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Chart Section */}
-          <div className="lg:col-span-2">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <div className="space-y-1">
-                  <CardTitle>User Activity</CardTitle>
-                  <CardDescription>
-                    Active users, new signups, and engagement metrics
-                  </CardDescription>
-                </div>
-                <Select defaultValue={timeRange} onValueChange={setTimeRange}>
-                  <SelectTrigger
-                    className="w-[160px] rounded-lg"
-                    aria-label="Select time range"
-                  >
-                    <SelectValue placeholder="Last 30 days" />
-                  </SelectTrigger>
-                  <SelectContent className="rounded-xl">
-                    <SelectItem value="7d" className="rounded-lg">
-                      Last 7 days
-                    </SelectItem>
-                    <SelectItem value="30d" className="rounded-lg">
-                      Last 30 days
-                    </SelectItem>
-                    <SelectItem value="90d" className="rounded-lg">
-                      Last 3 months
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </CardHeader>
-              <CardContent>
-                <ChartContainer
-                  config={chartConfig}
-                  className="aspect-auto h-[300px] w-full"
+      {/* Recent Activity - Full Width */}
+      <div className="mb-8">
+        <Card>
+          <CardHeader>
+            <CardTitle>Recent Activity</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {recentActivity.map((activity) => (
+                <motion.div
+                  key={activity.id}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  className="flex items-center space-x-3 text-sm"
                 >
-                  <AreaChart data={filteredChartData}>
-                    <defs>
-                      <linearGradient id="fillActive" x1="0" y1="0" x2="0" y2="1">
-                        <stop
-                          offset="5%"
-                          stopColor="var(--color-active)"
-                          stopOpacity={0.8}
-                        />
-                        <stop
-                          offset="95%"
-                          stopColor="var(--color-active)"
-                          stopOpacity={0.1}
-                        />
-                      </linearGradient>
-                      <linearGradient id="fillNew" x1="0" y1="0" x2="0" y2="1">
-                        <stop
-                          offset="5%"
-                          stopColor="var(--color-new)"
-                          stopOpacity={0.8}
-                        />
-                        <stop
-                          offset="95%"
-                          stopColor="var(--color-new)"
-                          stopOpacity={0.1}
-                        />
-                      </linearGradient>
-                      <linearGradient id="fillEngagement" x1="0" y1="0" x2="0" y2="1">
-                        <stop
-                          offset="5%"
-                          stopColor="var(--color-engagement)"
-                          stopOpacity={0.8}
-                        />
-                        <stop
-                          offset="95%"
-                          stopColor="var(--color-engagement)"
-                          stopOpacity={0.1}
-                        />
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid vertical={false} />
-                    <XAxis
-                      dataKey="date"
-                      tickLine={false}
-                      axisLine={false}
-                      tickMargin={8}
-                      minTickGap={32}
-                      tickFormatter={(value) => {
-                        const date = new Date(value);
-                        return date.toLocaleDateString("en-US", {
-                          month: "short",
-                          day: "numeric",
-                        });
-                      }}
-                    />
-                    <ChartTooltip
-                      cursor={false}
-                      content={
-                        <ChartTooltipContent
-                          labelFormatter={(value) => {
-                            return new Date(value).toLocaleDateString("en-US", {
-                              month: "short",
-                              day: "numeric",
-                            });
-                          }}
-                          indicator="dot"
-                        />
-                      }
-                    />
-                    <Area
-                      dataKey="new"
-                      type="natural"
-                      fill="url(#fillNew)"
-                      stroke="var(--color-new)"
-                      stackId="a"
-                    />
-                    <Area
-                      dataKey="active"
-                      type="natural"
-                      fill="url(#fillActive)"
-                      stroke="var(--color-active)"
-                      stackId="a"
-                    />
-                    <Area
-                      dataKey="engagement"
-                      type="monotone"
-                      stroke="var(--color-engagement)"
-                      strokeWidth={2}
-                      dot={{ r: 2, strokeWidth: 2, fill: "var(--background)" }}
-                      activeDot={{ r: 4, strokeWidth: 0 }}
-                      fill="none"
-                    />
-                    <ChartLegend content={<ChartLegendContent />} />
-                  </AreaChart>
-                </ChartContainer>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Recent Activity */}
-          <div>
-            <Card>
-              <CardHeader>
-                <CardTitle>Recent Activity</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {recentActivity.map((activity) => (
-                    <motion.div
-                      key={activity.id}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      className="flex items-center space-x-3 text-sm"
-                    >
-                      <div className="p-2 bg-primary/10 rounded-lg">
-                        {activity.icon}
-                      </div>
-                      <div>
-                        <p className="font-medium">
-                          {activity.action}
-                        </p>
-                        <p className="text-muted-foreground text-xs">
-                          {activity.timestamp}
-                        </p>
-                      </div>
-                    </motion.div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
+                  <div className="p-2 bg-primary/10 rounded-lg">
+                    {activity.icon}
+                  </div>
+                  <div>
+                    <p className="font-medium">
+                      {activity.action}
+                    </p>
+                    <p className="text-muted-foreground text-xs">
+                      {activity.timestamp}
+                    </p>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

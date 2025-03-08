@@ -100,7 +100,7 @@ export function LiftStreakTracker({
                     <TooltipTrigger asChild>
                       <div 
                         className={cn(
-                          "aspect-square w-full rounded-sm",
+                          "aspect-square w-full rounded-full",
                           day.completed 
                             ? "bg-primary hover:bg-primary/90" 
                             : "bg-muted-foreground/20 hover:bg-muted-foreground/30 dark:bg-muted-foreground/30 dark:hover:bg-muted-foreground/40",
