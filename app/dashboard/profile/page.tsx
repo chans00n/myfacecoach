@@ -1,17 +1,26 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useEffect, useState, Suspense } from 'react';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
-import { useSubscription } from '@/hooks/useSubscription';
-import Link from 'next/link';
+import { useSubscription, Subscription } from '@/hooks/useSubscription';
 import { AccountManagement } from '@/components/AccountManagement';
 import { ErrorBoundary } from 'react-error-boundary';
-import { Suspense } from 'react';
 import { StripeBuyButton } from '@/components/StripeBuyButton';
-import { useTrialStatus } from '@/hooks/useTrialStatus';
+import { FaCheckCircle, FaTimesCircle } from 'react-icons/fa';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { toast } from '@/components/ui/use-toast';
+
+// Extend the Subscription type with additional properties
+interface ExtendedSubscription extends Subscription {
+  plan_name?: string;
+  interval?: string;
+  amount?: number;
+  currency?: string;
+}
 
 function LoadingSpinner() {
   return (
@@ -22,135 +31,150 @@ function LoadingSpinner() {
 }
 
 function ProfileContent() {
-  const { user } = useAuth();
-  const { subscription, isLoading: isLoadingSubscription, syncWithStripe, fetchSubscription } = useSubscription();
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const paymentStatus = searchParams.get('payment');
-  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
+  const { user, isLoading: isAuthLoading } = useAuth();
+  const { subscription: baseSubscription, fetchSubscription } = useSubscription();
+  const subscription = baseSubscription as ExtendedSubscription | null;
   const [isCancelling, setIsCancelling] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const { isInTrial, trialEndTime } = useTrialStatus();
+  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
+  const [isReactivating, setIsReactivating] = useState(false);
+  const [syncError, setSyncError] = useState<string | null>(null);
 
-  // Show payment success message if redirected from successful payment
+  // Check for payment success
+  const [paymentSuccess, setPaymentSuccess] = useState(false);
+  const [paymentMessage, setPaymentMessage] = useState('');
+
   useEffect(() => {
-    if (paymentStatus === 'success') {
-      // Could add a toast notification here
-      console.log('Payment successful!');
-    }
-  }, [paymentStatus]);
-
-  // Add error handling for subscription sync
-  useEffect(() => {
-    if (subscription?.stripe_subscription_id) {
-      try {
-        syncWithStripe(subscription.stripe_subscription_id);
-        console.log('Subscription synced with Stripe successfully');
-      } catch (err: unknown) {
-        console.error('Error syncing with Stripe:', err);
-        setError('Unable to load subscription details');
-      }
-    }
-  }, [syncWithStripe, subscription?.stripe_subscription_id]);
-
-  // Add loading timeout with auto-refresh
-  useEffect(() => {
-    let timeoutId: NodeJS.Timeout;
-    let refreshAttempts = 0;
-    const MAX_REFRESH_ATTEMPTS = 3;
-    const REFRESH_INTERVAL = 3000; // 3 seconds
-    
-    const attemptRefresh = async () => {
-      if (refreshAttempts < MAX_REFRESH_ATTEMPTS) {
-        refreshAttempts++;
-        console.log(`Attempting auto-refresh (${refreshAttempts}/${MAX_REFRESH_ATTEMPTS})`);
-        await fetchSubscription();
-        
-        // If still loading, schedule next attempt
-        if (isLoadingSubscription) {
-          timeoutId = setTimeout(attemptRefresh, REFRESH_INTERVAL);
-        }
-      } else {
-        setError('Loading subscription is taking longer than expected. Please refresh the page.');
-      }
-    };
-
-    if (isLoadingSubscription) {
-      timeoutId = setTimeout(attemptRefresh, REFRESH_INTERVAL);
-    }
-
-    return () => {
-      if (timeoutId) clearTimeout(timeoutId);
-    };
-  }, [isLoadingSubscription, fetchSubscription]);
-
-  // Add useEffect for auth check
-  useEffect(() => {
-    if (!user) {
+    // If not logged in, redirect to login
+    if (!isAuthLoading && !user) {
       router.push('/login');
     }
-  }, [user, router]);
+  }, [user, isAuthLoading, router]);
 
-  // Add refresh effect
   useEffect(() => {
-    if (user?.id) {
+    // Check for payment success in URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const success = urlParams.get('success');
+    const message = urlParams.get('message');
+
+    if (success === 'true' && message) {
+      setPaymentSuccess(true);
+      setPaymentMessage(decodeURIComponent(message));
+      
+      // Remove query parameters from URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+      
+      // Refresh subscription data
       fetchSubscription();
     }
-  }, [user?.id, fetchSubscription]);
+  }, [fetchSubscription]);
 
   const handleCancelSubscription = async () => {
-    if (!subscription?.stripe_subscription_id) return;
-    
     setIsCancelling(true);
     try {
-      const response = await fetch('/api/stripe/cancel', {
+      const response = await fetch('/api/subscription/cancel', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          subscriptionId: subscription.stripe_subscription_id 
-        }),
+        headers: {
+          'Content-Type': 'application/json',
+        },
       });
-      
-      if (!response.ok) throw new Error('Failed to cancel subscription');
-      
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to cancel subscription');
+      }
+
+      toast({
+        title: "Success",
+        description: "Subscription cancelled successfully",
+      });
+      fetchSubscription();
       setIsCancelModalOpen(false);
-      router.refresh();
     } catch (error) {
-      console.error('Error canceling subscription:', error);
+      console.error('Error cancelling subscription:', error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : 'Failed to cancel subscription',
+        variant: "destructive",
+      });
     } finally {
       setIsCancelling(false);
     }
   };
 
   const handleReactivateSubscription = async () => {
-    if (!subscription?.stripe_subscription_id) return;
-    
+    setIsReactivating(true);
     try {
-      const response = await fetch('/api/stripe/reactivate', {
+      const response = await fetch('/api/subscription/reactivate', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          subscriptionId: subscription.stripe_subscription_id 
-        }),
+        headers: {
+          'Content-Type': 'application/json',
+        },
       });
-      
-      if (!response.ok) throw new Error('Failed to reactivate subscription');
-      
-      router.refresh();
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to reactivate subscription');
+      }
+
+      toast({
+        title: "Success",
+        description: "Subscription reactivated successfully",
+      });
+      fetchSubscription();
     } catch (error) {
       console.error('Error reactivating subscription:', error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : 'Failed to reactivate subscription',
+        variant: "destructive",
+      });
+    } finally {
+      setIsReactivating(false);
     }
   };
 
+  const syncSubscriptionWithStripe = async () => {
+    setSyncError(null);
+    try {
+      const response = await fetch('/api/subscription/sync', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to sync subscription');
+      }
+
+      toast({
+        title: "Success",
+        description: "Subscription synced successfully",
+      });
+      fetchSubscription();
+    } catch (error) {
+      console.error('Error syncing subscription:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to sync subscription';
+      setSyncError(errorMessage);
+      toast({
+        title: "Error",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    }
+  };
+
+  if (isAuthLoading) {
+    return <LoadingSpinner />;
+  }
+
   if (!user) {
-    return (
-      <div className="flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-foreground mb-4 mx-auto"></div>
-          <p className="text-foreground">Redirecting to login...</p>
-        </div>
-      </div>
-    );
+    return null; // Will redirect in useEffect
   }
 
   return (
@@ -161,107 +185,145 @@ function ProfileContent() {
         </div>
       }
     >
-      <div>
-        {paymentStatus === 'success' && (
-          <div className="mb-8 p-4 bg-green-50 dark:bg-green-900/30 rounded-lg">
-            <p className="text-green-600 dark:text-green-400">
-              🎉 Thank you for your subscription! Your payment was successful.
-            </p>
-          </div>
+      <div className="space-y-6">
+        {paymentSuccess && (
+          <Card className="border-green-500">
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-3 text-green-600 dark:text-green-400">
+                <FaCheckCircle className="h-5 w-5" />
+                <p>{paymentMessage}</p>
+              </div>
+            </CardContent>
+          </Card>
         )}
-        
-        <h1 className="text-3xl font-bold mb-8">Profile</h1>
-        
-        <AccountManagement />
 
-        {/* Subscription Section */}
-        <Card className="p-6 mb-8">
-          <h2 className="text-xl font-semibold mb-4">Subscription Status</h2>
-          {error ? (
-            <div className="text-red-500 dark:text-red-400">{error}</div>
-          ) : isLoadingSubscription ? (
-            <div className="flex items-center space-x-2">
-              <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-              <span>Loading subscription details...</span>
-            </div>
-          ) : subscription ? (
-            <div className="space-y-2">
-              <p>
-                <span className="font-medium">Status:</span>{' '}
-                <span className={`${subscription.status === 'active' ? 'text-green-500' : 'text-yellow-500'}`}>
-                  {subscription.status.charAt(0).toUpperCase() + subscription.status.slice(1)}
-                </span>
-              </p>
-              <p><span className="font-medium">Started:</span> {new Date(subscription.created_at).toLocaleDateString()}</p>
-              
-              {subscription.status === 'canceled' ? (
-                <div className="mt-4">
-                  <Link
-                    href="/pay"
-                    className="inline-block px-6 py-3 bg-primary hover:bg-primary-dark text-white rounded-full shadow-subtle hover:shadow-hover transition-all"
-                  >
-                    Resubscribe
-                  </Link>
-                </div>
-              ) : subscription.cancel_at_period_end ? (
-                <div className="mt-4 p-4 bg-yellow-50 dark:bg-yellow-900/30 rounded-lg">
-                  <p className="text-yellow-600 dark:text-yellow-400 mb-2">
-                    Your subscription will end on {new Date(subscription.current_period_end).toLocaleDateString()}
-                  </p>
-                  <Button
-                    onClick={handleReactivateSubscription}
-                    className="bg-green-500 hover:bg-green-600 text-white"
-                  >
-                    Resume Subscription
-                  </Button>
-                </div>
-              ) : (subscription.status === 'active' || subscription.status === 'trialing') ? (
-                <Button
-                  onClick={() => setIsCancelModalOpen(true)}
-                  variant="destructive"
-                  className="mt-4"
-                >
-                  Cancel Subscription
-                </Button>
-              ) : null}
-            </div>
-          ) : (
-            <div className="mt-4 space-y-4">
-              {isInTrial ? (
-                <>
-                  <p className="text-yellow-600 dark:text-yellow-400">
-                    You are currently in your 48-hour trial period. Your trial will end on {' '}
-                    {trialEndTime ? new Date(trialEndTime).toLocaleDateString() : 'soon'}.
-                  </p>
-                  <p>Subscribe now to continue using the app after the trial ends.</p>
-                </>
-              ) : trialEndTime ? (
-                <>
-                  <div className="p-4 bg-red-50 dark:bg-red-900/30 rounded-lg mb-4">
-                    <p className="text-red-600 dark:text-red-400">
-                      Your trial period ended on {new Date(trialEndTime).toLocaleDateString()}.
-                    </p>
-                    <p className="mt-2">Subscribe now to regain access to the cooking experience.</p>
-                  </div>
-                </>
-              ) : (
-                <p>Subscribe to unlock the amazing cooking experience.</p>
+        <div className="flex flex-col gap-2">
+          <h1 className="text-3xl font-bold tracking-tight">Profile</h1>
+          <p className="text-muted-foreground">
+            Manage your account settings and subscription
+          </p>
+        </div>
+
+        <Separator />
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Account Information</CardTitle>
+            <CardDescription>Manage your personal account details</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <AccountManagement />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>Subscription</CardTitle>
+                <CardDescription>Manage your subscription and billing</CardDescription>
+              </div>
+              {subscription && (
+                <Badge variant={subscription.status === 'active' ? 'default' : 'destructive'}>
+                  {subscription.status === 'active' 
+                    ? subscription.cancel_at_period_end ? 'Cancelling' : 'Active' 
+                    : 'Inactive'}
+                </Badge>
               )}
-              
-              <StripeBuyButton
-                buyButtonId={process.env.NEXT_PUBLIC_STRIPE_BUTTON_ID || ''}
-                publishableKey={process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || ''}
-              />
             </div>
-          )}
+          </CardHeader>
+          <CardContent>
+            {syncError && (
+              <div className="mb-4 p-3 bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-200 rounded-md flex items-center gap-2">
+                <FaTimesCircle className="h-4 w-4" />
+                <p className="text-sm">{syncError}</p>
+              </div>
+            )}
+
+            {subscription ? (
+              <div className="space-y-4">
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div>
+                    <h3 className="text-sm font-medium text-muted-foreground">Plan</h3>
+                    <p className="mt-1 font-medium">{subscription.plan_name || 'Premium Plan'}</p>
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-medium text-muted-foreground">Billing Period</h3>
+                    <p className="mt-1 font-medium">
+                      {subscription.interval === 'month' ? 'Monthly' : 'Yearly'}
+                    </p>
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-medium text-muted-foreground">Next Billing Date</h3>
+                    <p className="mt-1 font-medium">
+                      {subscription.current_period_end
+                        ? new Date(subscription.current_period_end).toLocaleDateString()
+                        : 'N/A'}
+                    </p>
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-medium text-muted-foreground">Amount</h3>
+                    <p className="mt-1 font-medium">
+                      ${((subscription.amount || 0) / 100).toFixed(2)} {subscription.currency?.toUpperCase()}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap gap-3 mt-6">
+                  <Button
+                    variant="outline"
+                    onClick={syncSubscriptionWithStripe}
+                  >
+                    Sync with Stripe
+                  </Button>
+                  
+                  {subscription.status === 'active' && !subscription.cancel_at_period_end && (
+                    <Button
+                      variant="destructive"
+                      onClick={() => setIsCancelModalOpen(true)}
+                    >
+                      Cancel Subscription
+                    </Button>
+                  )}
+                  
+                  {subscription.status === 'active' && subscription.cancel_at_period_end && (
+                    <Button
+                      variant="default"
+                      onClick={handleReactivateSubscription}
+                      disabled={isReactivating}
+                      className="flex items-center gap-2"
+                    >
+                      {isReactivating ? (
+                        <>
+                          <div className="w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+                          Reactivating...
+                        </>
+                      ) : (
+                        'Reactivate Subscription'
+                      )}
+                    </Button>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <p className="text-muted-foreground">You don&apos;t have an active subscription.</p>
+                
+                <StripeBuyButton
+                  buyButtonId={process.env.NEXT_PUBLIC_STRIPE_BUTTON_ID || ''}
+                  publishableKey={process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || ''}
+                />
+              </div>
+            )}
+          </CardContent>
         </Card>
 
         {/* Cancel Confirmation Modal */}
         {isCancelModalOpen && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full">
+            <div className="bg-card rounded-lg p-6 max-w-md w-full border shadow-lg">
               <h3 className="text-xl font-semibold mb-4">Cancel Subscription?</h3>
-              <p className="text-gray-600 dark:text-gray-300 mb-6">
+              <p className="text-muted-foreground mb-6">
                 You&apos;ll continue to have access until the end of your billing period on {new Date(subscription?.current_period_end || '').toLocaleDateString()}. No refunds are provided for cancellations.
               </p>
               <div className="flex gap-4 justify-end">
