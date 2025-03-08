@@ -57,13 +57,34 @@ function ProfileContent() {
   const [isLoadingPreferences, setIsLoadingPreferences] = useState(true);
   // Add a ref to track if the component is mounted
   const isMounted = React.useRef(true);
+  // Add a ref to track if the initial loading is complete
+  const initialLoadComplete = React.useRef(false);
 
   // Set isMounted to false when component unmounts
   useEffect(() => {
+    // Clear any existing timers when the component mounts
+    const timers = [];
+    for (let i = 1; i < 1000; i++) {
+      timers.push(clearTimeout(i));
+      timers.push(clearInterval(i));
+    }
+
     return () => {
       isMounted.current = false;
+      // Clear any timers again when unmounting
+      for (let i = 1; i < 1000; i++) {
+        clearTimeout(i);
+        clearInterval(i);
+      }
     };
   }, []);
+
+  // Mark initial load as complete after the first render
+  useEffect(() => {
+    if (!isAuthLoading && !isLoadingPreferences && isMounted.current) {
+      initialLoadComplete.current = true;
+    }
+  }, [isAuthLoading, isLoadingPreferences]);
 
   useEffect(() => {
     if (!isAuthLoading && !user) {
@@ -359,8 +380,8 @@ function ProfileContent() {
 
   const subscriptionStatus = getSubscriptionStatus();
 
-  // Only show loading spinner on initial load
-  if ((isAuthLoading || isLoadingPreferences) && isMounted.current) {
+  // Only show loading spinner on initial load, not on subsequent background refreshes
+  if (!initialLoadComplete.current && (isAuthLoading || isLoadingPreferences) && isMounted.current) {
     return <LoadingSpinner />;
   }
 
@@ -580,7 +601,20 @@ function ProfileContent() {
 
 export default function ProfilePage() {
   return (
-    <ErrorBoundary fallback={<div>Something went wrong</div>}>
+    <ErrorBoundary 
+      fallback={
+        <div className="p-6 text-center">
+          <h2 className="text-xl font-semibold mb-4">Something went wrong</h2>
+          <p className="mb-4">There was an error loading your profile information.</p>
+          <Button 
+            onClick={() => window.location.reload()}
+            variant="outline"
+          >
+            Try Again
+          </Button>
+        </div>
+      }
+    >
       <Suspense fallback={<LoadingSpinner />}>
         <ProfileContent />
       </Suspense>
