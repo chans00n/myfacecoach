@@ -20,68 +20,230 @@ import {
   Activity
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Area, AreaChart, CartesianGrid, XAxis } from "recharts";
+import {
+  ChartConfig,
+  ChartContainer,
+  ChartLegend,
+  ChartLegendContent,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const AUTH_TIMEOUT = 15000; // 15 seconds
+
+// Generate more realistic dummy data for the chart
+const generateDummyData = () => {
+  const data = [];
+  const now = new Date();
+  
+  // Base values and growth factors
+  let activeUsers = 120 + Math.floor(Math.random() * 50);
+  let newUsers = 20 + Math.floor(Math.random() * 15);
+  let engagementRate = 45 + Math.floor(Math.random() * 10);
+  
+  // Generate data for the past 90 days
+  for (let i = 90; i >= 0; i--) {
+    const date = new Date(now);
+    date.setDate(date.getDate() - i);
+    
+    // Add weekly pattern (higher on weekdays, lower on weekends)
+    const dayOfWeek = date.getDay();
+    const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+    const weekendFactor = isWeekend ? 0.7 : 1.1;
+    
+    // Add some randomness
+    const randomFactor = 0.85 + (Math.random() * 0.3);
+    
+    // Add growth trend over time (slight upward trend)
+    const growthFactor = 1 + (i < 60 ? 0.002 : 0.001);
+    
+    // Calculate values for this day
+    activeUsers = Math.max(100, Math.floor(activeUsers * growthFactor * randomFactor * weekendFactor));
+    newUsers = Math.max(10, Math.floor(newUsers * randomFactor * weekendFactor));
+    engagementRate = Math.min(95, Math.max(30, Math.floor(engagementRate * randomFactor * 0.99 + (Math.random() * 5 - 2))));
+    
+    // Add special events (spikes in activity)
+    if (i === 30 || i === 60) {
+      activeUsers = Math.floor(activeUsers * 1.5);
+      newUsers = Math.floor(newUsers * 2);
+    }
+    
+    // Format date as YYYY-MM-DD
+    const formattedDate = date.toISOString().split('T')[0];
+    
+    data.push({
+      date: formattedDate,
+      active: activeUsers,
+      new: newUsers,
+      engagement: engagementRate
+    });
+  }
+  
+  return data;
+};
+
+// Chart data for user activity
+const chartData = generateDummyData();
+
+// Calculate metrics from chart data
+const calculateMetrics = () => {
+  // Get the most recent 30 days of data
+  const recentData = chartData.slice(-30);
+  const previousData = chartData.slice(-60, -30);
+  
+  // Calculate totals for recent period
+  const totalActiveUsers = recentData[recentData.length - 1].active;
+  const totalNewUsers = recentData.reduce((sum, item) => sum + item.new, 0);
+  const avgEngagement = Math.round(recentData.reduce((sum, item) => sum + item.engagement, 0) / recentData.length);
+  
+  // Calculate growth rates
+  const prevActiveUsers = previousData[previousData.length - 1].active;
+  const prevTotalNewUsers = previousData.reduce((sum, item) => sum + item.new, 0);
+  const prevAvgEngagement = Math.round(previousData.reduce((sum, item) => sum + item.engagement, 0) / previousData.length);
+  
+  const activeGrowth = ((totalActiveUsers - prevActiveUsers) / prevActiveUsers) * 100;
+  const newUsersGrowth = ((totalNewUsers - prevTotalNewUsers) / prevTotalNewUsers) * 100;
+  const engagementGrowth = ((avgEngagement - prevAvgEngagement) / prevAvgEngagement) * 100;
+  
+  return {
+    activeUsers: {
+      value: totalActiveUsers.toLocaleString(),
+      change: activeGrowth.toFixed(1) + "%",
+      trend: activeGrowth >= 0 ? "up" : "down"
+    },
+    newUsers: {
+      value: totalNewUsers.toLocaleString(),
+      change: newUsersGrowth.toFixed(1) + "%",
+      trend: newUsersGrowth >= 0 ? "up" : "down"
+    },
+    engagement: {
+      value: avgEngagement + "%",
+      change: engagementGrowth.toFixed(1) + "%",
+      trend: engagementGrowth >= 0 ? "up" : "down"
+    },
+    revenue: {
+      value: "$" + (totalNewUsers * 19.99).toFixed(2) + "k",
+      change: "+" + newUsersGrowth.toFixed(1) + "%",
+      trend: "up"
+    }
+  };
+};
+
+const metrics = calculateMetrics();
+
+// Generate dynamic recent activity data
+const generateRecentActivity = () => {
+  const activities = [
+    {
+      type: "signup",
+      action: "New user signup",
+      icon: <PlusCircle className="h-4 w-4" />
+    },
+    {
+      type: "payment",
+      action: "Payment processed",
+      icon: <CreditCard className="h-4 w-4" />
+    },
+    {
+      type: "settings",
+      action: "Settings updated",
+      icon: <Settings className="h-4 w-4" />
+    },
+    {
+      type: "session",
+      action: "Session completed",
+      icon: <Clock className="h-4 w-4" />
+    },
+    {
+      type: "upgrade",
+      action: "Plan upgraded",
+      icon: <TrendingUp className="h-4 w-4" />
+    }
+  ];
+  
+  const timeUnits = [
+    { max: 10, unit: "minute", text: "minutes" },
+    { max: 3, unit: "hour", text: "hours" },
+    { max: 2, unit: "day", text: "days" }
+  ];
+  
+  return Array.from({ length: 5 }, (_, i) => {
+    const activity = activities[Math.floor(Math.random() * activities.length)];
+    
+    // Generate a random time
+    const timeUnitIndex = Math.floor(Math.random() * timeUnits.length);
+    const timeUnit = timeUnits[timeUnitIndex];
+    const timeValue = Math.max(1, Math.floor(Math.random() * timeUnit.max));
+    
+    return {
+      id: i + 1,
+      action: activity.action,
+      timestamp: `${timeValue} ${timeValue === 1 ? timeUnit.unit : timeUnit.text} ago`,
+      icon: activity.icon
+    };
+  });
+};
 
 // Dashboard metrics data
 const dashboardMetrics = [
   {
-    title: "Total Users",
-    value: "1,234",
-    change: "+12.3%",
+    title: "Active Users",
+    value: metrics.activeUsers.value,
+    change: metrics.activeUsers.change,
     icon: <Users className="h-6 w-6 text-primary" />,
-    trend: "up"
+    trend: metrics.activeUsers.trend
   },
   {
-    title: "Revenue",
-    value: "$12.4k",
-    change: "+8.2%",
-    icon: <CreditCard className="h-6 w-6 text-primary" />,
-    trend: "up"
+    title: "New Signups",
+    value: metrics.newUsers.value,
+    change: metrics.newUsers.change,
+    icon: <PlusCircle className="h-6 w-6 text-primary" />,
+    trend: metrics.newUsers.trend
   },
   {
-    title: "Active Sessions",
-    value: "432",
-    change: "-3.1%",
+    title: "Engagement Rate",
+    value: metrics.engagement.value,
+    change: metrics.engagement.change,
     icon: <Activity className="h-6 w-6 text-primary" />,
-    trend: "down"
+    trend: metrics.engagement.trend
   },
   {
-    title: "Growth Rate",
-    value: "18.2%",
-    change: "+2.4%",
-    icon: <TrendingUp className="h-6 w-6 text-primary" />,
-    trend: "up"
+    title: "Est. Revenue",
+    value: metrics.revenue.value,
+    change: metrics.revenue.change,
+    icon: <CreditCard className="h-6 w-6 text-primary" />,
+    trend: metrics.revenue.trend
   }
 ];
 
 // Recent activity data
-const recentActivity = [
-  {
-    id: 1,
-    action: "New user signup",
-    timestamp: "2 minutes ago",
-    icon: <PlusCircle className="h-4 w-4" />
+const recentActivity = generateRecentActivity();
+
+const chartConfig = {
+  users: {
+    label: "Users",
   },
-  {
-    id: 2,
-    action: "Payment processed",
-    timestamp: "15 minutes ago",
-    icon: <CreditCard className="h-4 w-4" />
+  active: {
+    label: "Active Users",
+    color: "hsl(var(--primary))",
   },
-  {
-    id: 3,
-    action: "Settings updated",
-    timestamp: "1 hour ago",
-    icon: <Settings className="h-4 w-4" />
+  new: {
+    label: "New Users",
+    color: "hsl(var(--secondary))",
   },
-  {
-    id: 4,
-    action: "Session completed",
-    timestamp: "2 hours ago",
-    icon: <Clock className="h-4 w-4" />
+  engagement: {
+    label: "Engagement Rate (%)",
+    color: "hsl(var(--accent))",
   }
-];
+} satisfies ChartConfig;
 
 export default function Dashboard() {
   
@@ -94,6 +256,24 @@ export default function Dashboard() {
   const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(false);
   const { isInTrial, isLoading: isTrialLoading } = useTrialStatus();
   const [authTimeout, setAuthTimeout] = useState(false);
+  const [timeRange, setTimeRange] = useState("30d");
+
+  // Filter chart data based on selected time range
+  const filteredChartData = chartData.filter((item) => {
+    const date = new Date(item.date);
+    const today = new Date();
+    let daysToSubtract = 30;
+    
+    if (timeRange === "7d") {
+      daysToSubtract = 7;
+    } else if (timeRange === "90d") {
+      daysToSubtract = 90;
+    }
+    
+    const startDate = new Date();
+    startDate.setDate(today.getDate() - daysToSubtract);
+    return date >= startDate;
+  });
 
   // Add new states for dashboard functionality
 
@@ -249,19 +429,130 @@ export default function Dashboard() {
             <Card>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <div className="space-y-1">
-                  <CardTitle>Analytics Overview</CardTitle>
+                  <CardTitle>User Activity</CardTitle>
                   <CardDescription>
-                    View your analytics data
+                    Active users, new signups, and engagement metrics
                   </CardDescription>
                 </div>
-                <BarChart3 className="h-5 w-5 text-muted-foreground" />
+                <Select defaultValue={timeRange} onValueChange={setTimeRange}>
+                  <SelectTrigger
+                    className="w-[160px] rounded-lg"
+                    aria-label="Select time range"
+                  >
+                    <SelectValue placeholder="Last 30 days" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl">
+                    <SelectItem value="7d" className="rounded-lg">
+                      Last 7 days
+                    </SelectItem>
+                    <SelectItem value="30d" className="rounded-lg">
+                      Last 30 days
+                    </SelectItem>
+                    <SelectItem value="90d" className="rounded-lg">
+                      Last 3 months
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
               </CardHeader>
               <CardContent>
-                <div className="h-64 flex items-center justify-center border-2 border-dashed border-muted rounded-lg">
-                  <p className="text-muted-foreground">
-                    Chart Placeholder
-                  </p>
-                </div>
+                <ChartContainer
+                  config={chartConfig}
+                  className="aspect-auto h-[300px] w-full"
+                >
+                  <AreaChart data={filteredChartData}>
+                    <defs>
+                      <linearGradient id="fillActive" x1="0" y1="0" x2="0" y2="1">
+                        <stop
+                          offset="5%"
+                          stopColor="var(--color-active)"
+                          stopOpacity={0.8}
+                        />
+                        <stop
+                          offset="95%"
+                          stopColor="var(--color-active)"
+                          stopOpacity={0.1}
+                        />
+                      </linearGradient>
+                      <linearGradient id="fillNew" x1="0" y1="0" x2="0" y2="1">
+                        <stop
+                          offset="5%"
+                          stopColor="var(--color-new)"
+                          stopOpacity={0.8}
+                        />
+                        <stop
+                          offset="95%"
+                          stopColor="var(--color-new)"
+                          stopOpacity={0.1}
+                        />
+                      </linearGradient>
+                      <linearGradient id="fillEngagement" x1="0" y1="0" x2="0" y2="1">
+                        <stop
+                          offset="5%"
+                          stopColor="var(--color-engagement)"
+                          stopOpacity={0.8}
+                        />
+                        <stop
+                          offset="95%"
+                          stopColor="var(--color-engagement)"
+                          stopOpacity={0.1}
+                        />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid vertical={false} />
+                    <XAxis
+                      dataKey="date"
+                      tickLine={false}
+                      axisLine={false}
+                      tickMargin={8}
+                      minTickGap={32}
+                      tickFormatter={(value) => {
+                        const date = new Date(value);
+                        return date.toLocaleDateString("en-US", {
+                          month: "short",
+                          day: "numeric",
+                        });
+                      }}
+                    />
+                    <ChartTooltip
+                      cursor={false}
+                      content={
+                        <ChartTooltipContent
+                          labelFormatter={(value) => {
+                            return new Date(value).toLocaleDateString("en-US", {
+                              month: "short",
+                              day: "numeric",
+                            });
+                          }}
+                          indicator="dot"
+                        />
+                      }
+                    />
+                    <Area
+                      dataKey="new"
+                      type="natural"
+                      fill="url(#fillNew)"
+                      stroke="var(--color-new)"
+                      stackId="a"
+                    />
+                    <Area
+                      dataKey="active"
+                      type="natural"
+                      fill="url(#fillActive)"
+                      stroke="var(--color-active)"
+                      stackId="a"
+                    />
+                    <Area
+                      dataKey="engagement"
+                      type="monotone"
+                      stroke="var(--color-engagement)"
+                      strokeWidth={2}
+                      dot={{ r: 2, strokeWidth: 2, fill: "var(--background)" }}
+                      activeDot={{ r: 4, strokeWidth: 0 }}
+                      fill="none"
+                    />
+                    <ChartLegend content={<ChartLegendContent />} />
+                  </AreaChart>
+                </ChartContainer>
               </CardContent>
             </Card>
           </div>
