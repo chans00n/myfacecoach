@@ -21,15 +21,15 @@ export const POST = withCors(async function POST(request: NextRequest) {
       .from('subscriptions')
       .select('*')
       .eq('stripe_subscription_id', subscriptionId)
-      .single();
+      .limit(1);
 
-    if (checkError && checkError.code !== 'PGRST116') {
+    if (checkError) {
       console.error('Error checking subscription:', checkError);
       throw checkError;
     }
 
     // If no subscription exists in database, we need to create it
-    if (!existingSubscription) {
+    if (!existingSubscription || existingSubscription.length === 0) {
       console.log('No existing subscription found, fetching from Stripe...');
       const stripeSubscription = await stripe.subscriptions.retrieve(subscriptionId);
       

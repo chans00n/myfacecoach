@@ -41,9 +41,9 @@ async function checkExistingSubscription(customerId: string): Promise<boolean> {
     .select('*')
     .eq('stripe_customer_id', customerId)
     .in('status', ['active', 'trialing'])
-    .single();
+    .limit(1);
 
-  return !!existingSubs;
+  return !!existingSubs && existingSubs.length > 0;
 }
 
 // Currently Handled Events:
@@ -240,14 +240,14 @@ async function createSubscription(subscriptionId: string, userId: string, custom
       .from('subscriptions')
       .select('*')
       .eq('stripe_subscription_id', subscriptionId)
-      .single();
+      .limit(1);
 
     if (checkError) {
       logWebhookEvent('Error checking existing subscription', checkError);
     }
 
-    if (existingData) {
-      logWebhookEvent('Found existing subscription', existingData);
+    if (existingData && existingData.length > 0) {
+      logWebhookEvent('Found existing subscription', existingData[0]);
       const { error: updateError } = await supabaseAdmin
         .from('subscriptions')
         .update({
@@ -256,15 +256,13 @@ async function createSubscription(subscriptionId: string, userId: string, custom
           cancel_at_period_end: stripeSubscription.cancel_at_period_end,
           updated_at: new Date().toISOString()
         })
-        .eq('stripe_subscription_id', subscriptionId)
-        .select()
-        .single();
+        .eq('stripe_subscription_id', subscriptionId);
 
       if (updateError) {
         logWebhookEvent('Error updating existing subscription', updateError);
         throw updateError;
       }
-      return existingData;
+      return existingData[0];
     }
 
     logWebhookEvent('Creating new subscription record');

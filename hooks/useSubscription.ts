@@ -49,15 +49,17 @@ export function useSubscription() {
         .eq('user_id', user.id)
         .in('status', ['active', 'trialing'])
         .order('created_at', { ascending: false })
-        .maybeSingle();
+        .limit(1);
 
       if (error) throw error;
 
-      const isValid = data && 
-        ['active', 'trialing'].includes(data.status) && 
-        new Date(data.current_period_end) > new Date();
+      // Check if we have a valid subscription
+      const validSubscription = data && data.length > 0 ? data[0] : null;
+      const isValid = validSubscription && 
+        ['active', 'trialing'].includes(validSubscription.status) && 
+        new Date(validSubscription.current_period_end) > new Date();
 
-      const result = isValid ? data : null;
+      const result = isValid ? validSubscription : null;
       
       // Update cache
       subscriptionCache.set(user.id, {
