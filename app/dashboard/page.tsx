@@ -18,7 +18,7 @@ import {
   TrendingUp,
   Activity
 } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Area, AreaChart, CartesianGrid, XAxis } from "recharts";
 import {
   ChartConfig,
@@ -36,6 +36,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { RadialProgress } from "@/components/ui/radial-progress";
+import {
+  Label,
+  PolarGrid,
+  PolarRadiusAxis,
+  RadialBar,
+  RadialBarChart,
+} from "recharts";
 
 const AUTH_TIMEOUT = 15000; // 15 seconds
 
@@ -124,30 +131,101 @@ const calculateMetrics = () => {
       value: totalActiveUsers.toLocaleString(),
       change: activeGrowth.toFixed(1) + "%",
       trend: activeGrowth >= 0 ? "up" : "down",
-      progress: activeProgress
+      progress: activeProgress,
+      label: "Active Users",
+      fill: "var(--color-active)"
     },
     newUsers: {
       value: totalNewUsers.toLocaleString(),
       change: newUsersGrowth.toFixed(1) + "%",
       trend: newUsersGrowth >= 0 ? "up" : "down",
-      progress: newUsersProgress
+      progress: newUsersProgress,
+      label: "New Signups",
+      fill: "var(--color-new)"
     },
     engagement: {
       value: avgEngagement + "%",
       change: engagementGrowth.toFixed(1) + "%",
       trend: engagementGrowth >= 0 ? "up" : "down",
-      progress: engagementProgress
+      progress: engagementProgress,
+      label: "Engagement",
+      fill: "var(--color-engagement)"
     },
     revenue: {
       value: "$" + (totalNewUsers * 19.99).toFixed(2) + "k",
       change: "+" + newUsersGrowth.toFixed(1) + "%",
       trend: "up",
-      progress: revenueProgress
+      progress: revenueProgress,
+      label: "Revenue",
+      fill: "var(--color-revenue)"
     }
   };
 };
 
 const metrics = calculateMetrics();
+
+// Dashboard metrics data for radial charts
+const metricsChartData = [
+  {
+    metric: "activeUsers",
+    visitors: metrics.activeUsers.progress,
+    fill: "var(--color-active)",
+    label: "Active Users",
+    value: metrics.activeUsers.value,
+    change: metrics.activeUsers.change,
+    trend: metrics.activeUsers.trend
+  },
+  {
+    metric: "newUsers",
+    visitors: metrics.newUsers.progress,
+    fill: "var(--color-new)",
+    label: "New Signups",
+    value: metrics.newUsers.value,
+    change: metrics.newUsers.change,
+    trend: metrics.newUsers.trend
+  },
+  {
+    metric: "engagement",
+    visitors: metrics.engagement.progress,
+    fill: "var(--color-engagement)",
+    label: "Engagement",
+    value: metrics.engagement.value,
+    change: metrics.engagement.change,
+    trend: metrics.engagement.trend
+  },
+  {
+    metric: "revenue",
+    visitors: metrics.revenue.progress,
+    fill: "var(--color-revenue)",
+    label: "Est. Revenue",
+    value: metrics.revenue.value,
+    change: metrics.revenue.change,
+    trend: metrics.revenue.trend
+  }
+];
+
+// Chart config for radial charts
+const radialChartConfig = {
+  visitors: {
+    label: "Value",
+  },
+  activeUsers: {
+    label: "Active Users",
+    color: "hsl(var(--primary))",
+  },
+  newUsers: {
+    label: "New Signups",
+    color: "hsl(var(--secondary))",
+  },
+  engagement: {
+    label: "Engagement",
+    color: "hsl(var(--accent))",
+  },
+  revenue: {
+    label: "Revenue",
+    color: "hsl(var(--primary))",
+  }
+} satisfies ChartConfig;
 
 // Generate dynamic recent activity data
 const generateRecentActivity = () => {
@@ -201,42 +279,6 @@ const generateRecentActivity = () => {
     };
   });
 };
-
-// Dashboard metrics data
-const dashboardMetrics = [
-  {
-    title: "Active Users",
-    value: metrics.activeUsers.value,
-    change: metrics.activeUsers.change,
-    icon: <Users className="h-6 w-6 text-primary" />,
-    trend: metrics.activeUsers.trend,
-    progress: metrics.activeUsers.progress
-  },
-  {
-    title: "New Signups",
-    value: metrics.newUsers.value,
-    change: metrics.newUsers.change,
-    icon: <PlusCircle className="h-6 w-6 text-primary" />,
-    trend: metrics.newUsers.trend,
-    progress: metrics.newUsers.progress
-  },
-  {
-    title: "Engagement Rate",
-    value: metrics.engagement.value,
-    change: metrics.engagement.change,
-    icon: <Activity className="h-6 w-6 text-primary" />,
-    trend: metrics.engagement.trend,
-    progress: metrics.engagement.progress
-  },
-  {
-    title: "Est. Revenue",
-    value: metrics.revenue.value,
-    change: metrics.revenue.change,
-    icon: <CreditCard className="h-6 w-6 text-primary" />,
-    trend: metrics.revenue.trend,
-    progress: metrics.revenue.progress
-  }
-];
 
 // Recent activity data
 const recentActivity = generateRecentActivity();
@@ -449,33 +491,72 @@ export default function Dashboard() {
       <div>
         {/* Metrics Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {dashboardMetrics.map((metric, index) => (
+          {metricsChartData.map((metric, index) => (
             <motion.div
-              key={metric.title}
+              key={metric.metric}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
             >
-              <Card>
-                <CardContent className="pt-6 flex flex-col items-center justify-center text-center">
-                  <RadialProgress 
-                    value={metric.progress}
-                    variant={metric.trend === 'up' ? 'success' : 'danger'}
-                    icon={metric.icon}
-                    label={metric.value}
-                    indicator={
-                      <span className={`text-sm font-medium ${
-                        metric.trend === 'up' ? 'text-green-500' : 'text-red-500'
-                      }`}>
-                        {metric.change}
-                      </span>
-                    }
-                    className="mb-2"
-                  />
-                  <p className="text-sm text-muted-foreground mt-2">
-                    {metric.title}
-                  </p>
+              <Card className="flex flex-col h-full">
+                <CardHeader className="items-center pb-0">
+                  <CardTitle>{metric.label}</CardTitle>
+                </CardHeader>
+                <CardContent className="flex-1 pb-0">
+                  <ChartContainer
+                    config={radialChartConfig}
+                    className="mx-auto aspect-square max-h-[180px]"
+                  >
+                    <RadialBarChart
+                      data={[metric]}
+                      startAngle={0}
+                      endAngle={250}
+                      innerRadius={60}
+                      outerRadius={80}
+                    >
+                      <PolarGrid
+                        gridType="circle"
+                        radialLines={false}
+                        stroke="none"
+                        className="first:fill-muted last:fill-background"
+                        polarRadius={[65, 55]}
+                      />
+                      <RadialBar dataKey="visitors" background cornerRadius={10} />
+                      <PolarRadiusAxis tick={false} tickLine={false} axisLine={false}>
+                        <Label
+                          content={({ viewBox }) => {
+                            if (viewBox && "cx" in viewBox && "cy" in viewBox) {
+                              return (
+                                <text
+                                  x={viewBox.cx}
+                                  y={viewBox.cy}
+                                  textAnchor="middle"
+                                  dominantBaseline="middle"
+                                >
+                                  <tspan
+                                    x={viewBox.cx}
+                                    y={viewBox.cy}
+                                    className="fill-foreground text-3xl font-bold"
+                                  >
+                                    {metric.value}
+                                  </tspan>
+                                </text>
+                              )
+                            }
+                          }}
+                        />
+                      </PolarRadiusAxis>
+                    </RadialBarChart>
+                  </ChartContainer>
                 </CardContent>
+                <CardFooter className="flex-col gap-1 text-sm pt-0">
+                  <div className="flex items-center gap-2 font-medium leading-none">
+                    <span className={metric.trend === 'up' ? 'text-green-500' : 'text-red-500'}>
+                      {metric.trend === 'up' ? 'Trending up' : 'Trending down'} by {metric.change}
+                    </span>
+                    <TrendingUp className={`h-4 w-4 ${metric.trend === 'up' ? 'text-green-500' : 'text-red-500'} ${metric.trend === 'down' ? 'rotate-180' : ''}`} />
+                  </div>
+                </CardFooter>
               </Card>
             </motion.div>
           ))}
