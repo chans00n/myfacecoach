@@ -63,8 +63,8 @@ export const LiftCard: React.FC<LiftCardProps> = ({ workout, href }) => {
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
               
               {workout.videoUrl && (
-                <div className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <div className="bg-primary/80 rounded-full p-3">
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="bg-primary/80 rounded-full p-3 shadow-lg transform transition-transform hover:scale-110">
                     <Play className="h-8 w-8 text-white" />
                   </div>
                 </div>

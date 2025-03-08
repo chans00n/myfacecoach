@@ -33,7 +33,7 @@ const ExerciseCard: React.FC<{ exercise: Exercise; index: number }> = ({ exercis
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div 
-              className="relative h-48 rounded-md overflow-hidden group cursor-pointer"
+              className="relative h-48 rounded-md overflow-hidden cursor-pointer"
               onClick={() => exercise.videoUrl && setVideoModalOpen(true)}
             >
               {exercise.imageUrl ? (
@@ -45,8 +45,8 @@ const ExerciseCard: React.FC<{ exercise: Exercise; index: number }> = ({ exercis
                     className="object-cover"
                   />
                   {exercise.videoUrl && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <div className="bg-primary/80 rounded-full p-3">
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="bg-primary/80 rounded-full p-3 shadow-lg transform transition-transform hover:scale-110">
                         <Play className="h-8 w-8 text-white" />
                       </div>
                     </div>
@@ -185,7 +185,7 @@ export const LiftDetail: React.FC<LiftDetailProps> = ({ workout }) => {
           <div className="lg:col-span-1">
             <Card className="sticky top-6">
               <div 
-                className="relative h-48 w-full cursor-pointer group"
+                className="relative h-48 w-full cursor-pointer"
                 onClick={() => workout.videoUrl && setVideoModalOpen(true)}
               >
                 <Image
@@ -197,8 +197,8 @@ export const LiftDetail: React.FC<LiftDetailProps> = ({ workout }) => {
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                 {workout.videoUrl && (
-                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                    <div className="bg-primary/80 rounded-full p-3">
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="bg-primary/80 rounded-full p-3 shadow-lg transform transition-transform hover:scale-110">
                       <Play className="h-8 w-8 text-white" />
                     </div>
                   </div>
