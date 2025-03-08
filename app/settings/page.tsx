@@ -36,7 +36,7 @@ function SettingsContent() {
 
     const fetchPreferences = async () => {
       try {
-        const { data, error } = await supabase
+        const { data } = await supabase
           .from('user_preferences')
           .select('*')
           .eq('user_id', user.id)
