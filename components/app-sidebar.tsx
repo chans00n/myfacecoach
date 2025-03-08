@@ -4,11 +4,9 @@ import * as React from "react"
 import Image from "next/image"
 import Link from "next/link"
 import {
-  AudioWaveform,
   BookOpen,
   Bot,
   Frame,
-  GalleryVerticalEnd,
   Map,
   PieChart,
   Settings2,
@@ -184,4 +182,5 @@ export function AppSidebar({ className, ...props }: React.ComponentProps<typeof 
     </Sidebar>
   )
 }
+
 
