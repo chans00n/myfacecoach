@@ -53,7 +53,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .eq('user_id', userId)
         .in('status', ['active', 'trialing'])
         .order('created_at', { ascending: false })
-        .maybeSingle();
+        .limit(1);
       
       if (error) {
         console.error('Subscription check error:', error);
@@ -63,9 +63,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       // console.log("AuthContext - subscription data: ", data)
 
-      const isValid = data && 
-        ['active', 'trialing'].includes(data.status) && 
-        new Date(data.current_period_end) > new Date();
+      const validSubscription = data && data.length > 0 ? data[0] : null;
+      const isValid = validSubscription && 
+        ['active', 'trialing'].includes(validSubscription.status) && 
+        new Date(validSubscription.current_period_end) > new Date();
       // console.log("AuthContext -  isValid: ", data)
 
       setIsSubscriber(!!isValid);
