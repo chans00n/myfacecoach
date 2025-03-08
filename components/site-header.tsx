@@ -71,7 +71,7 @@ export function SiteHeader() {
               <BreadcrumbItem>
                 <BreadcrumbLink href="/dashboard">Dashboard</BreadcrumbLink>
               </BreadcrumbItem>
-              {breadcrumbs.map((breadcrumb, index) => (
+              {breadcrumbs.map((breadcrumb) => (
                 <React.Fragment key={breadcrumb.href}>
                   <BreadcrumbSeparator />
                   <BreadcrumbItem>

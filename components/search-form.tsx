@@ -3,12 +3,12 @@
 import * as React from "react"
 import { Search } from "lucide-react"
 
-import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 
-interface SearchFormProps extends React.HTMLAttributes<HTMLFormElement> {}
-
-export function SearchForm({ className, ...props }: SearchFormProps) {
+export function SearchForm({ 
+  className, 
+  ...props 
+}: React.HTMLAttributes<HTMLFormElement>) {
   const [value, setValue] = React.useState("")
 
   function onSubmit(e: React.FormEvent<HTMLFormElement>) {
