@@ -253,10 +253,6 @@ export function AppSidebar({ className, ...props }: React.ComponentProps<typeof 
             <SidebarMenuButton size="lg" asChild>
               <Link href="/">
                 <div className="flex items-center justify-center relative">
-                  {/* Debug info */}
-                  <div className="absolute top-0 left-0 text-xs p-1 bg-muted z-10">
-                    Theme: {currentTheme || 'loading...'}
-                  </div>
                   <Image 
                     key={currentTheme || 'default'}
                     src={currentTheme === "dark" ? "/MYFC_logo_white.png" : "/MYFC_logo.png"} 
