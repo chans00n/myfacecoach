@@ -199,7 +199,7 @@ function ProfileContent() {
     }
     
     if (subscription.status === 'trialing') {
-      return 'Trial Member';
+      return 'Trial MYFC Member';
     }
     
     return 'non-MYFC Member';
@@ -293,7 +293,7 @@ function ProfileContent() {
                   <div>
                     <h3 className="text-sm font-medium text-muted-foreground">Amount</h3>
                     <p className="mt-1 font-medium">
-                      ${((subscription.amount || 0) / 100).toFixed(2)} {subscription.currency?.toUpperCase()}
+                      ${((subscription.amount || 1999) / 100).toFixed(2)} {subscription.currency?.toUpperCase() || 'USD'}
                     </p>
                   </div>
                 </div>

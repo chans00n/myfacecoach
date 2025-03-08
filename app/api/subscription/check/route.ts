@@ -193,13 +193,35 @@ export const POST = withCors(async function POST(request: NextRequest) {
     
     // Get the subscription from Stripe
     try {
-      const subscription = await stripe.subscriptions.retrieve(stripeSubscriptionId);
+      const subscription = await stripe.subscriptions.retrieve(stripeSubscriptionId, {
+        expand: ['items.data.price']
+      });
+      
+      console.log('Stripe subscription details:', {
+        id: subscription.id,
+        status: subscription.status,
+        interval: subscription.items.data[0]?.price?.recurring?.interval,
+        amount: subscription.items.data[0]?.price?.unit_amount,
+        currency: subscription.items.data[0]?.price?.currency,
+      });
       
       // Check if the subscription is active
       const isActive = subscription.status === 'active' || 
                        subscription.status === 'trialing' ||
                        (subscription.status === 'canceled' && 
                         subscription.current_period_end > Math.floor(Date.now() / 1000));
+      
+      // Get the price details
+      const priceData = subscription.items.data[0]?.price;
+      const interval = priceData?.recurring?.interval || 'month';
+      const amount = priceData?.unit_amount || 1999; // Default to $19.99 if not available
+      const currency = priceData?.currency || 'usd';
+      
+      console.log('Extracted price details:', {
+        interval,
+        amount,
+        currency,
+      });
       
       // Update the subscription in Supabase
       try {
@@ -210,14 +232,14 @@ export const POST = withCors(async function POST(request: NextRequest) {
             current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
             cancel_at_period_end: subscription.cancel_at_period_end,
             updated_at: new Date().toISOString(),
-            plan_name: subscription.items.data[0]?.price?.nickname || 'MYFC Member',
-            interval: subscription.items.data[0]?.price?.recurring?.interval || 'month',
-            amount: subscription.items.data[0]?.price?.unit_amount || 0,
-            currency: subscription.items.data[0]?.price?.currency || 'usd',
+            plan_name: priceData?.nickname || 'MYFC Member',
+            interval: interval,
+            amount: amount,
+            currency: currency,
           })
           .eq('stripe_subscription_id', stripeSubscriptionId);
         
-        console.log('Updated subscription in Supabase');
+        console.log('Updated subscription in Supabase with interval:', interval, 'and amount:', amount);
       } catch (error) {
         console.error('Error updating subscription in Supabase:', error);
       }
@@ -229,11 +251,11 @@ export const POST = withCors(async function POST(request: NextRequest) {
         cancelAtPeriodEnd: subscription.cancel_at_period_end,
         currentPeriodEnd: new Date(subscription.current_period_end * 1000).toISOString(),
         plan: {
-          id: subscription.items.data[0]?.price?.id,
+          id: priceData?.id,
           name: subscription.status === 'active' ? 'MYFC Member' : 'non-MYFC Member',
-          amount: subscription.items.data[0]?.price?.unit_amount,
-          currency: subscription.items.data[0]?.price?.currency,
-          interval: subscription.items.data[0]?.price?.recurring?.interval,
+          amount: amount,
+          currency: currency,
+          interval: interval,
         },
       });
     } catch (error) {
