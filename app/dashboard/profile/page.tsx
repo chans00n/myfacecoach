@@ -208,7 +208,7 @@ function ProfileContent() {
         throw new Error('No active session found');
       }
       
-      const response = await fetch('/api/subscription/portal', {
+      const response = await fetch('/api/stripe/customer-portal', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
