@@ -92,25 +92,28 @@ export function WorkoutStreakTracker({
       <CardContent>
         {/* Streak visualization */}
         <div className="mb-4">
-          <div className="grid grid-cols-26 gap-1">
+          <div className="grid grid-rows-7 gap-2">
             {rows.map((row, rowIndex) => (
-              <div key={`row-${rowIndex}`} className="flex gap-1">
+              <div key={`row-${rowIndex}`} className="flex gap-2">
                 {row.map((day, dayIndex) => (
                   <TooltipProvider key={`day-${rowIndex}-${dayIndex}`}>
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <div 
                           className={cn(
-                            "w-2.5 h-2.5 rounded-sm",
+                            "w-3 h-3 rounded-sm",
                             day.completed 
-                              ? "bg-foreground dark:bg-foreground" 
-                              : "bg-muted dark:bg-muted"
+                              ? "bg-primary hover:bg-primary/90" 
+                              : "bg-muted-foreground/20 hover:bg-muted-foreground/30 dark:bg-muted-foreground/30 dark:hover:bg-muted-foreground/40",
+                            "transition-colors duration-200 cursor-pointer"
                           )}
                         />
                       </TooltipTrigger>
                       <TooltipContent>
-                        <p>{format(day.date, "MMM d, yyyy")}</p>
-                        <p>{day.completed ? "Workout completed" : "No workout"}</p>
+                        <p className="font-medium">{format(day.date, "MMM d, yyyy")}</p>
+                        <p className={day.completed ? "text-primary" : "text-muted-foreground"}>
+                          {day.completed ? "Workout completed ✓" : "No workout"}
+                        </p>
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
@@ -118,10 +121,22 @@ export function WorkoutStreakTracker({
               </div>
             ))}
           </div>
+          
+          {/* Legend */}
+          <div className="flex items-center justify-end gap-4 mt-2 text-xs text-muted-foreground">
+            <div className="flex items-center gap-1.5">
+              <div className="w-3 h-3 rounded-sm bg-primary"></div>
+              <span>Workout completed</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div className="w-3 h-3 rounded-sm bg-muted-foreground/20 dark:bg-muted-foreground/30"></div>
+              <span>No workout</span>
+            </div>
+          </div>
         </div>
         
         {/* Stats */}
-        <div className="grid grid-cols-3 gap-4 pt-2 border-t border-border">
+        <div className="grid grid-cols-3 gap-4 pt-4 mt-2 border-t border-border">
           <div className="text-center">
             <p className="text-sm text-muted-foreground">Current Streak</p>
             <p className="text-2xl font-bold">{streakData.currentStreak}</p>
