@@ -183,6 +183,8 @@ function ProfileContent() {
     setIsCheckingStatus(true);
     try {
       await checkWithStripe();
+      // Force a refresh of the subscription data
+      await fetchSubscription();
       toast({
         title: "Status Updated",
         description: "Your subscription status has been updated.",
@@ -397,7 +399,7 @@ function ProfileContent() {
                       <p className="mt-1 font-medium">
                         {subscription.amount && subscription.currency
                           ? `${(subscription.amount / 100).toFixed(2)} ${subscription.currency.toUpperCase()}`
-                          : 'N/A'}
+                          : '$19.99 USD'}
                       </p>
                     </div>
                   </div>
