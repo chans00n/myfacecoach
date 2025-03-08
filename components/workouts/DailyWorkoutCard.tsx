@@ -53,6 +53,9 @@ export const DailyWorkoutCard: React.FC<DailyWorkoutProps> = ({
     }
   };
 
+  // Determine the workout URL
+  const workoutUrl = id === 'today-workout' ? '/workouts/today' : `/workouts/${id}`;
+
   return (
     <Card className="overflow-hidden transition-all hover:shadow-md">
       <div className="relative h-48 w-full">
@@ -97,7 +100,7 @@ export const DailyWorkoutCard: React.FC<DailyWorkoutProps> = ({
       </CardContent>
       
       <CardFooter>
-        <Link href={`/workouts/${id}`} className="w-full">
+        <Link href={workoutUrl} className="w-full">
           <Button className="w-full" variant="default">
             Start Workout <ChevronRight className="ml-2 h-4 w-4" />
           </Button>
