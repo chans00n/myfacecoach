@@ -20,6 +20,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Toaster } from '@/components/ui/toaster';
+import React from 'react';
 
 // Extend the Subscription type with additional properties
 interface ExtendedSubscription extends Subscription {
@@ -54,6 +55,15 @@ function ProfileContent() {
     language: 'english'
   });
   const [isLoadingPreferences, setIsLoadingPreferences] = useState(true);
+  // Add a ref to track if the component is mounted
+  const isMounted = React.useRef(true);
+
+  // Set isMounted to false when component unmounts
+  useEffect(() => {
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
 
   useEffect(() => {
     if (!isAuthLoading && !user) {
@@ -119,7 +129,7 @@ function ProfileContent() {
           return;
         }
 
-        if (data) {
+        if (data && isMounted.current) {
           // Extract only the preferences we need
           const { email_notifications, language } = data;
           setPreferences({ 
@@ -130,7 +140,9 @@ function ProfileContent() {
       } catch (error) {
         console.error('Error fetching preferences:', error);
       } finally {
-        setIsLoadingPreferences(false);
+        if (isMounted.current) {
+          setIsLoadingPreferences(false);
+        }
       }
     };
 
@@ -161,21 +173,27 @@ function ProfileContent() {
         throw new Error(data.error || 'Failed to cancel subscription');
       }
 
-      toast({
-        title: "Success",
-        description: "Subscription cancelled successfully",
-      });
-      fetchSubscription();
-      setIsCancelModalOpen(false);
+      if (isMounted.current) {
+        toast({
+          title: "Success",
+          description: "Subscription cancelled successfully",
+        });
+        fetchSubscription();
+        setIsCancelModalOpen(false);
+      }
     } catch (error) {
       console.error('Error cancelling subscription:', error);
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : 'Failed to cancel subscription',
-        variant: "destructive",
-      });
+      if (isMounted.current) {
+        toast({
+          title: "Error",
+          description: error instanceof Error ? error.message : 'Failed to cancel subscription',
+          variant: "destructive",
+        });
+      }
     } finally {
-      setIsCancelling(false);
+      if (isMounted.current) {
+        setIsCancelling(false);
+      }
     }
   };
 
@@ -185,19 +203,25 @@ function ProfileContent() {
       await checkWithStripe();
       // Force a refresh of the subscription data
       await fetchSubscription();
-      toast({
-        title: "Status Updated",
-        description: "Your subscription status has been updated.",
-      });
+      if (isMounted.current) {
+        toast({
+          title: "Status Updated",
+          description: "Your subscription status has been updated.",
+        });
+      }
     } catch (error) {
       console.error('Error checking subscription status:', error);
-      toast({
-        title: "Error",
-        description: "Failed to update subscription status. Please try again.",
-        variant: "destructive",
-      });
+      if (isMounted.current) {
+        toast({
+          title: "Error",
+          description: "Failed to update subscription status. Please try again.",
+          variant: "destructive",
+        });
+      }
     } finally {
-      setIsCheckingStatus(false);
+      if (isMounted.current) {
+        setIsCheckingStatus(false);
+      }
     }
   };
 
@@ -225,14 +249,18 @@ function ProfileContent() {
       }
 
       // Redirect to Stripe Customer Portal
-      window.location.href = data.url;
+      if (isMounted.current) {
+        window.location.href = data.url;
+      }
     } catch (error) {
       console.error('Error opening customer portal:', error);
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : 'Failed to open customer portal',
-        variant: "destructive",
-      });
+      if (isMounted.current) {
+        toast({
+          title: "Error",
+          description: error instanceof Error ? error.message : 'Failed to open customer portal',
+          variant: "destructive",
+        });
+      }
     }
   };
 
@@ -306,26 +334,33 @@ function ProfileContent() {
 
       if (error) throw error;
       
-      toast({
-        title: "Settings saved",
-        description: "Your preferences have been updated successfully.",
-      });
+      if (isMounted.current) {
+        toast({
+          title: "Settings saved",
+          description: "Your preferences have been updated successfully.",
+        });
+      }
       
     } catch (error) {
       console.error('Error saving preferences:', error);
-      toast({
-        title: "Error saving settings",
-        description: "There was a problem saving your preferences. Please try again.",
-        variant: "destructive",
-      });
+      if (isMounted.current) {
+        toast({
+          title: "Error saving settings",
+          description: "There was a problem saving your preferences. Please try again.",
+          variant: "destructive",
+        });
+      }
     } finally {
-      setIsSaving(false);
+      if (isMounted.current) {
+        setIsSaving(false);
+      }
     }
   };
 
   const subscriptionStatus = getSubscriptionStatus();
 
-  if (isAuthLoading || isLoadingPreferences) {
+  // Only show loading spinner on initial load
+  if ((isAuthLoading || isLoadingPreferences) && isMounted.current) {
     return <LoadingSpinner />;
   }
 
