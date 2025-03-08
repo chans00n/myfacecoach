@@ -21,6 +21,7 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Toaster } from '@/components/ui/toaster';
 import React from 'react';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 // Extend the Subscription type with additional properties
 interface ExtendedSubscription extends Subscription {
@@ -41,7 +42,7 @@ function LoadingSpinner() {
 
 function ProfileContent() {
   const router = useRouter();
-  const { user, isLoading: isAuthLoading, supabase } = useAuth();
+  const { user, isLoading: isAuthLoading, supabase, signOut } = useAuth();
   const { subscription: baseSubscription, fetchSubscription, checkWithStripe } = useSubscription();
   const subscription = baseSubscription as ExtendedSubscription | null;
   const [isCancelling, setIsCancelling] = useState(false);
@@ -55,6 +56,10 @@ function ProfileContent() {
     language: 'english'
   });
   const [isLoadingPreferences, setIsLoadingPreferences] = useState(true);
+  // Add state for delete account functionality
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | undefined>(undefined);
   // Add a ref to track if the component is mounted
   const isMounted = React.useRef(true);
   // Add a ref to track if the initial loading is complete
@@ -378,6 +383,56 @@ function ProfileContent() {
     }
   };
 
+  // Handle account deletion
+  const handleDeleteAccount = async () => {
+    if (!user) return;
+    
+    setIsDeleting(true);
+    setDeleteError(undefined);
+    
+    try {
+      // First check if user has an active subscription
+      if (subscription && subscription.status === 'active') {
+        throw new Error('Please cancel your subscription before deleting your account.');
+      }
+      
+      // Call the API to delete the account
+      const response = await fetch(`/api/user/delete`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userId: user.id }),
+      });
+      
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to delete account');
+      }
+      
+      // Sign out the user
+      await signOut();
+      
+      // Redirect to home page with success message
+      router.push('/?deleted=true');
+    } catch (error) {
+      console.error('Error deleting account:', error);
+      setDeleteError(error instanceof Error ? error.message : 'Failed to delete account');
+      
+      if (isMounted.current) {
+        toast({
+          title: "Error",
+          description: error instanceof Error ? error.message : 'Failed to delete account',
+          variant: "destructive",
+        });
+      }
+    } finally {
+      if (isMounted.current) {
+        setIsDeleting(false);
+      }
+    }
+  };
+
   const subscriptionStatus = getSubscriptionStatus();
 
   // Only show loading spinner on initial load, not on subsequent background refreshes
@@ -552,6 +607,34 @@ function ProfileContent() {
               </Button>
             </CardFooter>
           </Card>
+
+          {/* Danger Zone Card */}
+          <Card className="mt-6 border-destructive/20">
+            <CardHeader className="border-b border-destructive/20">
+              <CardTitle className="text-destructive">Danger Zone</CardTitle>
+              <CardDescription>
+                Irreversible actions that will affect your account
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="pt-6">
+              <div className="space-y-4">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                  <div>
+                    <h3 className="font-medium">Delete Account</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Permanently delete your account and all associated data
+                    </p>
+                  </div>
+                  <Button 
+                    variant="destructive" 
+                    onClick={() => setIsDeleteModalOpen(true)}
+                  >
+                    Delete Account
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
         
         <TabsContent value="notifications">
@@ -595,6 +678,56 @@ function ProfileContent() {
       </Tabs>
       
       <Toaster />
+
+      {/* Delete Account Confirmation Modal */}
+      <Dialog 
+        open={isDeleteModalOpen} 
+        onOpenChange={(open: boolean) => setIsDeleteModalOpen(open)}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-destructive">Delete Account?</DialogTitle>
+            <DialogDescription>
+              This action cannot be undone. All your data will be permanently deleted.
+              {subscription && subscription.status === 'active' && (
+                <p className="mt-2 font-medium text-destructive">
+                  You must cancel your subscription before deleting your account.
+                </p>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          
+          {deleteError && (
+            <div className="bg-destructive/10 text-destructive text-sm p-3 rounded-md">
+              {deleteError}
+            </div>
+          )}
+          
+          <div className="flex flex-col space-y-3 sm:space-y-0 sm:flex-row sm:space-x-3 sm:justify-end">
+            <Button
+              variant="outline"
+              onClick={() => setIsDeleteModalOpen(false)}
+              disabled={isDeleting}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDeleteAccount}
+              disabled={isDeleting || (subscription && subscription.status === 'active')}
+            >
+              {isDeleting ? (
+                <>
+                  <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-background border-t-transparent"></span>
+                  Deleting...
+                </>
+              ) : (
+                'Delete Account'
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
