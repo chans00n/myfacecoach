@@ -19,7 +19,7 @@ import {
   TrendingUp,
   Activity
 } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 const AUTH_TIMEOUT = 15000; // 15 seconds
 
@@ -89,7 +89,7 @@ export default function Dashboard() {
   // const [fullResponse, setFullResponse] = useState('');
   const { user, isSubscriber, isLoading: isAuthLoading } = useAuth();
   const router = useRouter();
-  const { subscription, isLoading: isSubLoading, fetchSubscription } = useSubscription();
+  const { subscription, fetchSubscription } = useSubscription();
   const [hasCheckedSubscription, setHasCheckedSubscription] = useState(false);
   const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(false);
   const { isInTrial, isLoading: isTrialLoading } = useTrialStatus();
