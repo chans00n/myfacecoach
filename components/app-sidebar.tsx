@@ -239,7 +239,7 @@ export function AppSidebar({ className, ...props }: React.ComponentProps<typeof 
         button.removeEventListener('click', handleThemeButtonClick)
       })
     }
-  }, [setCurrentTheme])
+  }, [setCurrentTheme, currentTheme])
 
   return (
     <Sidebar 

@@ -10,13 +10,11 @@ import { useSubscription } from '@/hooks/useSubscription';
 import { useTrialStatus } from '@/hooks/useTrialStatus';
 import { motion } from 'framer-motion';
 import { 
-  Users, 
   CreditCard, 
   Settings,
   PlusCircle,
   Clock,
   TrendingUp,
-  Activity
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Area, AreaChart, CartesianGrid, XAxis } from "recharts";
@@ -35,7 +33,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { RadialProgress } from "@/components/ui/radial-progress";
 import {
   Label,
   PolarGrid,
