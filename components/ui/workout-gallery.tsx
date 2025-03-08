@@ -62,10 +62,8 @@ export function WorkoutGallery({
   return (
     <div
       className={cn(
-        "relative h-full rounded-3xl p-6",
+        "relative h-full",
         "bg-background",
-        "border border-border",
-        "hover:border-border/80",
         "transition-all duration-300",
         className
       )}
