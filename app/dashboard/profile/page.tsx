@@ -13,6 +13,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { toast } from '@/components/ui/use-toast';
+import { supabase } from '@/utils/supabase';
 
 // Extend the Subscription type with additional properties
 interface ExtendedSubscription extends Subscription {
@@ -139,10 +140,18 @@ function ProfileContent() {
   const syncSubscriptionWithStripe = async () => {
     setSyncError(null);
     try {
+      // Get the current session
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        throw new Error('No active session found');
+      }
+      
       const response = await fetch('/api/subscription/sync', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
         },
       });
 
