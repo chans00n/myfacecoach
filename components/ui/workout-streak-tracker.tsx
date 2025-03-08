@@ -91,18 +91,18 @@ export function LiftStreakTracker({
       
       <CardContent>
         {/* Streak visualization */}
-        <div className="mb-4 overflow-x-auto">
-          <div className="min-w-[600px] md:min-w-0 md:w-full">
-            <div className="grid grid-rows-7 gap-[0.15rem] xs:gap-1 sm:gap-1.5 md:gap-2">
+        <div className="mb-4">
+          <div className="w-full">
+            <div className="grid auto-rows-fr gap-[0.1rem] xs:gap-[0.15rem] sm:gap-[0.2rem] md:gap-[0.25rem]">
               {rows.map((row, rowIndex) => (
-                <div key={`row-${rowIndex}`} className="flex gap-[0.15rem] xs:gap-1 sm:gap-1.5 md:gap-2">
+                <div key={`row-${rowIndex}`} className="flex justify-between w-full">
                   {row.map((day, dayIndex) => (
                     <TooltipProvider key={`day-${rowIndex}-${dayIndex}`}>
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <div 
                             className={cn(
-                              "w-[0.4rem] h-[0.4rem] xs:w-2 xs:h-2 sm:w-2.5 sm:h-2.5 md:w-3 md:h-3 rounded-sm",
+                              "aspect-square w-[0.3rem] h-[0.3rem] xs:w-[0.35rem] xs:h-[0.35rem] sm:w-[0.4rem] sm:h-[0.4rem] md:w-[0.45rem] md:h-[0.45rem] lg:w-[0.5rem] lg:h-[0.5rem] rounded-sm",
                               day.completed 
                                 ? "bg-primary hover:bg-primary/90" 
                                 : "bg-muted-foreground/20 hover:bg-muted-foreground/30 dark:bg-muted-foreground/30 dark:hover:bg-muted-foreground/40",
@@ -121,18 +121,6 @@ export function LiftStreakTracker({
                   ))}
                 </div>
               ))}
-            </div>
-            
-            {/* Legend */}
-            <div className="flex items-center justify-end gap-4 mt-2 text-xs text-muted-foreground">
-              <div className="flex items-center gap-1.5">
-                <div className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-sm bg-primary"></div>
-                <span>Lift completed</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <div className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-sm bg-muted-foreground/20 dark:bg-muted-foreground/30"></div>
-                <span>No lift</span>
-              </div>
             </div>
           </div>
         </div>
