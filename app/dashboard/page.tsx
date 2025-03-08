@@ -4,8 +4,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/utils/supabase';
 import { useAuth } from '@/contexts/AuthContext';
-
-
 import { useRouter } from 'next/navigation';
 import { useSubscription } from '@/hooks/useSubscription';
 // import { OnboardingTour } from '@/components/OnboardingTour';
@@ -21,6 +19,7 @@ import {
   TrendingUp,
   Activity
 } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 
 const AUTH_TIMEOUT = 15000; // 15 seconds
 
@@ -85,7 +84,6 @@ const recentActivity = [
 ];
 
 export default function Dashboard() {
-
   
   // const { isConnected } = useWebSocket();
   // const [fullResponse, setFullResponse] = useState('');
@@ -98,17 +96,11 @@ export default function Dashboard() {
   const [authTimeout, setAuthTimeout] = useState(false);
 
   // Add new states for dashboard functionality
-  // const [repositories, setRepositories] = useState([]);
-  // const [feedbackSources, setFeedbackSources] = useState([]);
-  // const [recentFeedback, setRecentFeedback] = useState([]);
-  // const [pendingPRs, setPendingPRs] = useState([]);
 
-  // First check - Subscription and trial check
+  // First check - Auth check
   useEffect(() => {
-    if (isSubLoading || isTrialLoading) return;
-    
-    const hasValidSubscription = ['active', 'trialing'].includes(subscription?.status || '');
-    
+    if (isAuthLoading || isTrialLoading) return;
+
     console.log('Access check isInTrial:', {
       hasSubscription: !!subscription,
       status: subscription?.status,
@@ -116,12 +108,10 @@ export default function Dashboard() {
       validUntil: subscription?.current_period_end
     });
 
-    // Only redirect if there's no valid subscription AND no valid trial
-    if (!hasValidSubscription && !isInTrial) {
-      console.log('No valid subscription or trial, redirecting');
-      router.replace('/profile');
+    if (!user) {
+      router.replace('/login');
     }
-  }, [subscription, isSubLoading, isTrialLoading, router, isInTrial]);
+  }, [user, router, isAuthLoading, isTrialLoading, subscription, isInTrial]);
 
   // Second check - Auth check
   useEffect(() => {
@@ -185,22 +175,13 @@ export default function Dashboard() {
     return () => clearTimeout(timer);
   }, [user, isAuthLoading, isTrialLoading]);
 
-  // useEffect(() => {
-  //   if (!hasCompletedOnboarding) {
-  //     router.push('/onboarding');
-  //   }
-  // }, [hasCompletedOnboarding, router]);
-
-  // Update the loading check
-  if (!user && (isAuthLoading || isTrialLoading) && !hasCheckedSubscription) {
-    console.log('user: ', user)
-    console.log('isAuthLoading: ', isAuthLoading)
-    console.log('hasCheckedSubscription: ', hasCheckedSubscription)
+  // Loading state
+  if (isAuthLoading || isTrialLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-foreground mb-4 mx-auto"></div>
-          <p className="text-foreground">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mb-4 mx-auto"></div>
+          <p>
             {authTimeout ? 
               "Taking longer than usual? Try refreshing the page 😊." :
               "Verifying access..."}
@@ -210,27 +191,24 @@ export default function Dashboard() {
     );
   }
 
-
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-[#0B1120]">
+    <div>
       {/* Dashboard Header */}
-      <div className="bg-white dark:bg-neutral-dark border-b border-slate-200 dark:border-slate-700">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
-              Dashboard Overview
-            </h1>
-            <div className="flex items-center space-x-4">
-              <span className="text-sm text-slate-600 dark:text-slate-300">
-                {isInTrial ? "Trial Period" : "Premium Plan"}
-              </span>
-            </div>
+      <div className="mb-6">
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold">
+            Dashboard Overview
+          </h1>
+          <div className="flex items-center space-x-4">
+            <span className="text-sm text-muted-foreground">
+              {isInTrial ? "Trial Period" : "Premium Plan"}
+            </span>
           </div>
         </div>
       </div>
 
       {/* Dashboard Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div>
         {/* Metrics Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {dashboardMetrics.map((metric, index) => (
@@ -239,24 +217,27 @@ export default function Dashboard() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
-              className="bg-white dark:bg-neutral-dark rounded-xl p-6 shadow-sm border border-slate-200 dark:border-slate-700"
             >
-              <div className="flex items-center justify-between">
-                <div className="p-2 bg-primary/10 dark:bg-primary-light/10 rounded-lg">
-                  {metric.icon}
-                </div>
-                <span className={`text-sm font-medium ${
-                  metric.trend === 'up' ? 'text-green-500' : 'text-red-500'
-                }`}>
-                  {metric.change}
-                </span>
-              </div>
-              <h3 className="mt-4 text-2xl font-bold text-slate-900 dark:text-white">
-                {metric.value}
-              </h3>
-              <p className="text-sm text-slate-600 dark:text-slate-400">
-                {metric.title}
-              </p>
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="flex items-center justify-between">
+                    <div className="p-2 bg-primary/10 rounded-lg">
+                      {metric.icon}
+                    </div>
+                    <span className={`text-sm font-medium ${
+                      metric.trend === 'up' ? 'text-green-500' : 'text-red-500'
+                    }`}>
+                      {metric.change}
+                    </span>
+                  </div>
+                  <h3 className="mt-4 text-2xl font-bold">
+                    {metric.value}
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    {metric.title}
+                  </p>
+                </CardContent>
+              </Card>
             </motion.div>
           ))}
         </div>
@@ -264,47 +245,58 @@ export default function Dashboard() {
         {/* Activity Feed */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Chart Section */}
-          <div className="lg:col-span-2 bg-white dark:bg-neutral-dark rounded-xl p-6 shadow-sm border border-slate-200 dark:border-slate-700">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
-                Analytics Overview
-              </h3>
-              <BarChart3 className="h-5 w-5 text-slate-400" />
-            </div>
-            <div className="h-64 flex items-center justify-center border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-lg">
-              <p className="text-slate-400 dark:text-slate-500">
-                Chart Placeholder
-              </p>
-            </div>
+          <div className="lg:col-span-2">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <div className="space-y-1">
+                  <CardTitle>Analytics Overview</CardTitle>
+                  <CardDescription>
+                    View your analytics data
+                  </CardDescription>
+                </div>
+                <BarChart3 className="h-5 w-5 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="h-64 flex items-center justify-center border-2 border-dashed border-muted rounded-lg">
+                  <p className="text-muted-foreground">
+                    Chart Placeholder
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
           </div>
 
           {/* Recent Activity */}
-          <div className="bg-white dark:bg-neutral-dark rounded-xl p-6 shadow-sm border border-slate-200 dark:border-slate-700">
-            <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-6">
-              Recent Activity
-            </h3>
-            <div className="space-y-4">
-              {recentActivity.map((activity) => (
-                <motion.div
-                  key={activity.id}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  className="flex items-center space-x-3 text-sm"
-                >
-                  <div className="p-2 bg-primary/10 dark:bg-primary-light/10 rounded-lg">
-                    {activity.icon}
-                  </div>
-                  <div>
-                    <p className="text-slate-900 dark:text-white">
-                      {activity.action}
-                    </p>
-                    <p className="text-slate-500 dark:text-slate-400 text-xs">
-                      {activity.timestamp}
-                    </p>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
+          <div>
+            <Card>
+              <CardHeader>
+                <CardTitle>Recent Activity</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {recentActivity.map((activity) => (
+                    <motion.div
+                      key={activity.id}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      className="flex items-center space-x-3 text-sm"
+                    >
+                      <div className="p-2 bg-primary/10 rounded-lg">
+                        {activity.icon}
+                      </div>
+                      <div>
+                        <p className="font-medium">
+                          {activity.action}
+                        </p>
+                        <p className="text-muted-foreground text-xs">
+                          {activity.timestamp}
+                        </p>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>
