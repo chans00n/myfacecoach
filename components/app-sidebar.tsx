@@ -14,6 +14,7 @@ import {
   MessageSquare,
 } from "lucide-react"
 import Link from "next/link"
+import { cn } from "@/lib/utils"
 
 import { NavMain } from "@/components/nav-main"
 import { NavProjects } from "@/components/nav-projects"
@@ -137,7 +138,7 @@ const data = {
   ],
 }
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+export function AppSidebar({ className, ...props }: React.ComponentProps<typeof Sidebar>) {
   const { user } = useAuth();
   
   const userData = user ? {
@@ -151,10 +152,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   };
 
   return (
-    <Sidebar
-      className="h-full overflow-y-auto"
-      {...props}
-    >
+    <Sidebar className={cn("border-r", className)} {...props}>
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>

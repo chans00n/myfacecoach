@@ -10,12 +10,12 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <SidebarProvider>
-      <div className="relative flex h-screen w-full flex-col overflow-hidden">
-        <SiteHeader />
-        <div className="flex flex-1 overflow-hidden">
-          <AppSidebar />
-          <main className="flex-1 overflow-auto p-4">{children}</main>
+    <SidebarProvider defaultOpen={true}>
+      <div className="grid min-h-screen w-full lg:grid-cols-[280px_1fr]">
+        <AppSidebar className="hidden lg:block" />
+        <div className="flex flex-col">
+          <SiteHeader />
+          <main className="flex-1 overflow-auto p-6">{children}</main>
         </div>
       </div>
     </SidebarProvider>
