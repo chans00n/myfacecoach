@@ -259,7 +259,7 @@ function ProfileContent() {
             <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full">
               <h3 className="text-xl font-semibold mb-4">Cancel Subscription?</h3>
               <p className="text-gray-600 dark:text-gray-300 mb-6">
-                You'll continue to have access until the end of your billing period on {new Date(subscription?.current_period_end || '').toLocaleDateString()}. No refunds are provided for cancellations.
+                You&apos;ll continue to have access until the end of your billing period on {new Date(subscription?.current_period_end || '').toLocaleDateString()}. No refunds are provided for cancellations.
               </p>
               <div className="flex gap-4 justify-end">
                 <button
