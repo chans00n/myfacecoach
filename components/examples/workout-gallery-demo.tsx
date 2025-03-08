@@ -11,6 +11,8 @@ const INITIAL_WORKOUTS: WorkoutSession[] = [
     duration: "45 min",
     calories: "320",
     completed: false,
+    imageUrl: "/images/seth-doyle-kqf4hj0cLwI-unsplash.jpg",
+    brief: "Focus on strengthening and toning the upper facial muscles for a more lifted appearance.",
     exercises: [
       { id: "e1", name: "Bench Press", sets: 3, reps: 10, weight: "135 lbs", isCompleted: false },
       { id: "e2", name: "Shoulder Press", sets: 3, reps: 12, weight: "95 lbs", isCompleted: false },
@@ -24,6 +26,8 @@ const INITIAL_WORKOUTS: WorkoutSession[] = [
     duration: "50 min",
     calories: "450",
     completed: true,
+    imageUrl: "/images/serge-le-strat-QkMqoLwhdnY-unsplash.jpg",
+    brief: "Target the jawline and neck muscles to define and sculpt the lower face region.",
     exercises: [
       { id: "e4", name: "Squats", sets: 4, reps: 12, weight: "185 lbs", isCompleted: true },
       { id: "e5", name: "Deadlifts", sets: 3, reps: 8, weight: "225 lbs", isCompleted: true },
@@ -37,6 +41,8 @@ const INITIAL_WORKOUTS: WorkoutSession[] = [
     duration: "30 min",
     calories: "380",
     completed: false,
+    imageUrl: "/images/chad-madden-1z6JYPafvII-unsplash.jpg",
+    brief: "High-intensity massage techniques to boost circulation and give your facial muscles a break from lifting.",
     exercises: [
       { id: "e7", name: "Burpees", sets: 3, reps: 20, isCompleted: false },
       { id: "e8", name: "Mountain Climbers", sets: 3, reps: 30, isCompleted: false },

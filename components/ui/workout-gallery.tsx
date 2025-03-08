@@ -1,6 +1,6 @@
 "use client";
 
-import { Dumbbell, Calendar, ArrowUpRight, ChevronRight, ChevronLeft } from "lucide-react";
+import { Dumbbell, Calendar, ArrowUpRight, ChevronRight, ChevronLeft, Clock, Flame } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import {
@@ -10,6 +10,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
+import Image from "next/image";
 
 export interface WorkoutSession {
   id: string;
@@ -19,6 +20,8 @@ export interface WorkoutSession {
   calories: string;
   exercises: Exercise[];
   completed: boolean;
+  imageUrl?: string; // Image URL for the workout
+  brief?: string; // Brief description of the workout
 }
 
 export interface Exercise {
@@ -89,7 +92,7 @@ export function WorkoutGallery({
               <CarouselItem key={workout.id} className="basis-full md:basis-1/2 lg:basis-1/3">
                 <div 
                   className={cn(
-                    "p-4 rounded-xl cursor-pointer",
+                    "p-4 rounded-xl cursor-pointer overflow-hidden",
                     "border border-border",
                     workout.id === activeWorkout 
                       ? "bg-primary/10 border-primary/50" 
@@ -98,22 +101,53 @@ export function WorkoutGallery({
                   )}
                   onClick={() => setActiveWorkout(workout.id)}
                 >
+                  {/* Workout Image */}
+                  {workout.imageUrl && (
+                    <div className="relative w-full h-40 mb-3 rounded-lg overflow-hidden">
+                      <Image
+                        src={workout.imageUrl}
+                        alt={workout.title}
+                        fill
+                        className="object-cover transition-transform hover:scale-105"
+                      />
+                      {workout.completed && (
+                        <div className="absolute top-2 right-2 px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
+                          Completed
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
                       <Calendar className="w-4 h-4 text-muted-foreground" />
                       <span className="text-sm font-medium text-muted-foreground">{workout.date}</span>
                     </div>
-                    {workout.completed && (
+                    {!workout.imageUrl && workout.completed && (
                       <span className="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
                         Completed
                       </span>
                     )}
                   </div>
                   <h4 className="text-base font-medium text-foreground">{workout.title}</h4>
+                  
+                  {/* Workout Brief */}
+                  {workout.brief && (
+                    <p className="mt-1 text-xs text-muted-foreground line-clamp-2">
+                      {workout.brief}
+                    </p>
+                  )}
+                  
                   <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
-                    <span>{workout.duration}</span>
+                    <div className="flex items-center gap-1">
+                      <Clock className="w-3 h-3" />
+                      <span>{workout.duration}</span>
+                    </div>
                     <span>•</span>
-                    <span>{workout.calories} cal</span>
+                    <div className="flex items-center gap-1">
+                      <Flame className="w-3 h-3" />
+                      <span>{workout.calories} cal</span>
+                    </div>
                   </div>
                 </div>
               </CarouselItem>

@@ -352,7 +352,11 @@ export default function Dashboard() {
       duration: `${workout.totalDuration} min`,
       calories: `${Math.floor(workout.totalDuration * 3.5)}`,
       exercises: allExercises,
-      completed: false
+      completed: false,
+      imageUrl: workout.imageUrl,
+      brief: workout.description.length > 120 ? 
+        `${workout.description.substring(0, 120)}...` : 
+        workout.description
     };
   });
   
