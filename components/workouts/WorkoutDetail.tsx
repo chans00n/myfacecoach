@@ -24,7 +24,7 @@ const ExerciseCard: React.FC<{ exercise: Exercise; index: number }> = ({ exercis
         <CardHeader className="pb-2">
           <div className="flex justify-between items-center">
             <CardTitle className="text-lg font-medium">{exercise.name}</CardTitle>
-            <Badge variant="outline" className="ml-2">
+            <Badge variant="lime" className="ml-2">
               {exercise.type.charAt(0).toUpperCase() + exercise.type.slice(1)}
             </Badge>
           </div>
@@ -139,7 +139,7 @@ const WorkoutSection: React.FC<{ title: string; description?: string; exercises:
             <AccordionTrigger className="hover:bg-muted/50 px-4 rounded-md">
               <div className="flex items-center">
                 <span className="font-medium">{index + 1}. {exercise.name}</span>
-                <Badge variant="outline" className="ml-3">
+                <Badge variant="lime" className="ml-3">
                   {exercise.duration}s {exercise.sets && `× ${exercise.sets}`}
                 </Badge>
               </div>

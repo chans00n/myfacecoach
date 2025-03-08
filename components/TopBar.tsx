@@ -56,7 +56,7 @@ export default function TopBar() {
     if (isLoadingSubscription) return null;
     
     if (subscription?.status === 'active') {
-      return <Badge variant="default">Active</Badge>;
+      return <Badge variant="lime">Active</Badge>;
     } else if (subscription?.status === 'trialing') {
       return <Badge variant="secondary">Trial</Badge>;
     } else if (isInTrial) {

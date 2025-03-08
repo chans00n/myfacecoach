@@ -182,7 +182,7 @@ function ProfileContent() {
       if (subscription.cancel_at_period_end) {
         return { text: 'Cancelling', variant: 'outline' as const };
       }
-      return { text: 'Active', variant: 'default' as const };
+      return { text: 'Active', variant: 'lime' as const };
     }
     
     if (subscription.status === 'trialing') {

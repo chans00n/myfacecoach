@@ -99,7 +99,7 @@ export function PricingSection() {
               <Card className={`h-full flex flex-col ${tier.popular ? 'border-primary shadow-lg' : ''}`}>
                 {tier.popular && (
                   <div className="absolute top-0 right-0 -mt-2 -mr-2">
-                    <Badge variant="default" className="bg-primary">Popular</Badge>
+                    <Badge variant="lime">Popular</Badge>
                   </div>
                 )}
                 <CardHeader>
