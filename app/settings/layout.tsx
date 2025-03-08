@@ -5,7 +5,7 @@ import { MobileNav } from "@/components/mobile-nav";
 import { SiteHeader } from "@/components/site-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 
-export default function MethodologyLayout({
+export default function SettingsLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;

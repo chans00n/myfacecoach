@@ -6,6 +6,7 @@ import { AuthProvider } from '@/contexts/AuthContext';
 import ProtectedRoute from '@/contexts/ProtectedRoute';
 import { Analytics } from "@vercel/analytics/react"
 import { ThemeProvider } from "@/components/theme-provider";
+import Head from './head';
 // import { PostHogProvider } from '@/contexts/PostHogContext';
 // import { PostHogErrorBoundary } from '@/components/PostHogErrorBoundary';
 
@@ -18,6 +19,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <Head />
       <body className={geist.className}>
         <Analytics mode="auto" />
         {/* <PostHogErrorBoundary>

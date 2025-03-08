@@ -114,8 +114,26 @@ export default {
   		animation: {
   			'accordion-down': 'accordion-down 0.2s ease-out',
   			'accordion-up': 'accordion-up 0.2s ease-out'
-  		}
+  		},
+      padding: {
+        'safe': 'env(safe-area-inset-bottom)',
+      },
+      margin: {
+        'safe': 'env(safe-area-inset-bottom)',
+      },
   	}
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [
+    require("tailwindcss-animate"),
+    function({ addBase }: { addBase: Function }) {
+      addBase({
+        ':root': {
+          '--sat': 'env(safe-area-inset-top)',
+          '--sar': 'env(safe-area-inset-right)',
+          '--sab': 'env(safe-area-inset-bottom)',
+          '--sal': 'env(safe-area-inset-left)',
+        },
+      });
+    },
+  ],
 } satisfies Config;
