@@ -7,6 +7,8 @@ import ProtectedRoute from '@/contexts/ProtectedRoute';
 import { Analytics } from "@vercel/analytics/react"
 import { ThemeProvider } from "@/components/theme-provider";
 import Head from './head';
+import '@/utils/amplitude-fix';
+import { CookieConsent } from "@/components/ui/cookie-consent";
 // import { PostHogProvider } from '@/contexts/PostHogContext';
 // import { PostHogErrorBoundary } from '@/components/PostHogErrorBoundary';
 
@@ -28,6 +30,7 @@ export default function RootLayout({
               <AuthProvider>   
                 <ProtectedRoute>
                   <main>{children}</main>
+                  <CookieConsent />
                 </ProtectedRoute>
               </AuthProvider>
             </ThemeProvider>
