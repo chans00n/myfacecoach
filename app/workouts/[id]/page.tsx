@@ -3,13 +3,7 @@ import WorkoutDetail from '@/components/workouts/WorkoutDetail';
 import { generateWeekOfWorkouts } from '@/utils/mockWorkouts';
 import { notFound } from 'next/navigation';
 
-interface WorkoutPageProps {
-  params: {
-    id: string;
-  };
-}
-
-export default function WorkoutPage({ params }: WorkoutPageProps) {
+export default function WorkoutPage({ params }: { params: { id: string } }) {
   // In a real application, you would fetch the workout data from an API or database
   // For now, we'll use our mock data
   const workouts = generateWeekOfWorkouts();

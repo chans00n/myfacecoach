@@ -1,7 +1,8 @@
+"use client";
+
 import React from 'react';
 import { generateWeekOfWorkouts } from '@/utils/mockWorkouts';
 import DailyWorkoutCard from '@/components/workouts/DailyWorkoutCard';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Calendar, Info } from "lucide-react";
 

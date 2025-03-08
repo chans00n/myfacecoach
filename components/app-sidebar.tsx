@@ -215,7 +215,7 @@ export function AppSidebar({ className, ...props }: React.ComponentProps<typeof 
       mediaQuery.removeEventListener('change', handleChange)
       window.removeEventListener('storage', handleChange)
     }
-  }, [])
+  }, [currentTheme, setCurrentTheme])
 
   // Listen for theme toggle button clicks
   useEffect(() => {

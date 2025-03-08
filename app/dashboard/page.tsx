@@ -312,8 +312,7 @@ export default function Dashboard() {
   const { subscription, fetchSubscription } = useSubscription();
   const [hasCheckedSubscription, setHasCheckedSubscription] = useState(false);
   const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(false);
-  const { isInTrial, isLoading: isTrialLoading } = useTrialStatus();
-  const [authTimeout, setAuthTimeout] = useState(false);
+  const { isLoading: isTrialLoading, isInTrial } = useTrialStatus();
   const [timeRange, setTimeRange] = useState("30d");
 
   // Get today's workout
@@ -403,16 +402,6 @@ export default function Dashboard() {
     }
   }, [user?.id, hasCompletedOnboarding]);
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (!user && (isAuthLoading || isTrialLoading)) {
-        setAuthTimeout(true);
-      }
-    }, AUTH_TIMEOUT);
-    
-    return () => clearTimeout(timer);
-  }, [user, isAuthLoading, isTrialLoading]);
-
   // Redirect if not authenticated
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -422,7 +411,7 @@ export default function Dashboard() {
     }, AUTH_TIMEOUT);
 
     return () => clearTimeout(timer);
-  }, [user, isAuthLoading, isTrialLoading]);
+  }, [user, isAuthLoading, isTrialLoading, router]);
 
   // Helper functions
   const getGreeting = () => {
@@ -475,7 +464,7 @@ export default function Dashboard() {
 
       {/* Today's Workout Section */}
       <div className="mb-8">
-        <h3 className="text-xl font-bold mb-4">Today's Workout</h3>
+        <h3 className="text-xl font-bold mb-4">Today&apos;s Workout</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Workout Card */}
           <div className="md:col-span-2">
@@ -505,7 +494,7 @@ export default function Dashboard() {
                   Designed to help you achieve a more youthful, lifted, and defined appearance.
                 </p>
                 
-                <h3 className="font-medium text-sm mt-4">Today's Focus</h3>
+                <h3 className="font-medium text-sm mt-4">Today&apos;s Focus</h3>
                 {todayWorkout.isTexasCardioDay ? (
                   <div className="bg-blue-50 p-3 rounded-md">
                     <h4 className="font-medium text-sm">Texas Cardio Day</h4>
@@ -517,7 +506,7 @@ export default function Dashboard() {
                   <div className="bg-green-50 p-3 rounded-md">
                     <h4 className="font-medium text-sm">Full Facial Workout</h4>
                     <p className="text-xs mt-1">
-                      Today's workout includes all three steps: warm-up, lifts, and cool-down for a complete facial fitness routine.
+                      Today&apos;s workout includes all three steps: warm-up, lifts, and cool-down for a complete facial fitness routine.
                     </p>
                   </div>
                 )}

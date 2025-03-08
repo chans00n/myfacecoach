@@ -18,7 +18,7 @@ export const POST = withCors(async function POST(request: NextRequest) {
       const body = await request.json();
       subscriptionId = body.subscriptionId || null;
       userId = body.userId || null;
-    } catch (e) {
+    } catch {
       // If there's no body or it can't be parsed, that's okay
       console.log('No request body or invalid JSON');
     }
@@ -130,7 +130,8 @@ export const POST = withCors(async function POST(request: NextRequest) {
     return NextResponse.json(data, { status: stripeResponse.status });
     
   } catch (error) {
-    console.error('Error in subscription cancel:', error);
+    // Log the error but don't expose it in the response
+    console.error('Error canceling subscription:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

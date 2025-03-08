@@ -1,3 +1,5 @@
+"use client";
+
 import React from 'react';
 import { Workout, Exercise } from '@/types/workout';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,7 +14,7 @@ interface WorkoutDetailProps {
   workout: Workout;
 }
 
-const ExerciseCard: React.FC<{ exercise: Exercise; index: number }> = ({ exercise, index }) => {
+const ExerciseCard: React.FC<{ exercise: Exercise; index: number }> = ({ exercise }) => {
   return (
     <Card className="mb-4">
       <CardHeader className="pb-2">
