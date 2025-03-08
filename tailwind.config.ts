@@ -161,6 +161,9 @@ export default {
       gridTemplateRows: {
         '7': 'repeat(7, minmax(0, 1fr))',
       },
+      screens: {
+        'xs': '480px',
+      },
   	}
   },
   plugins: [

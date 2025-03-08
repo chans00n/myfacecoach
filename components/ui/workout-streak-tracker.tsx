@@ -6,31 +6,31 @@ import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { format, subDays, isSameDay, parseISO } from "date-fns";
 
-interface WorkoutStreakTrackerProps {
-  workoutDates: string[]; // Array of ISO date strings when workouts were completed
+interface LiftStreakTrackerProps {
+  liftDates: string[]; // Array of ISO date strings when lifts were completed
   className?: string;
 }
 
-export function WorkoutStreakTracker({ 
-  workoutDates = [], 
+export function LiftStreakTracker({ 
+  liftDates = [], 
   className 
-}: WorkoutStreakTrackerProps) {
+}: LiftStreakTrackerProps) {
   // Calculate streak data
   const [streakData, setStreakData] = useState<{
     currentStreak: number;
     longestStreak: number;
-    totalWorkouts: number;
+    totalLifts: number;
     lastSixMonths: { date: Date; completed: boolean }[];
   }>({
     currentStreak: 0,
     longestStreak: 0,
-    totalWorkouts: 0,
+    totalLifts: 0,
     lastSixMonths: [],
   });
 
   useEffect(() => {
     // Convert string dates to Date objects
-    const workoutDateObjects = workoutDates.map(date => parseISO(date));
+    const liftDateObjects = liftDates.map(date => parseISO(date));
     
     // Generate dates for the last 6 months (7 rows x 26 columns = 182 days)
     const today = new Date();
@@ -38,8 +38,8 @@ export function WorkoutStreakTracker({
     
     for (let i = 0; i < 182; i++) {
       const date = subDays(today, i);
-      const completed = workoutDateObjects.some(workoutDate => 
-        isSameDay(workoutDate, date)
+      const completed = liftDateObjects.some(liftDate => 
+        isSameDay(liftDate, date)
       );
       
       lastSixMonths.unshift({ date, completed });
@@ -71,10 +71,10 @@ export function WorkoutStreakTracker({
     setStreakData({
       currentStreak,
       longestStreak,
-      totalWorkouts: workoutDates.length,
+      totalLifts: liftDates.length,
       lastSixMonths,
     });
-  }, [workoutDates]);
+  }, [liftDates]);
 
   // Split the days into rows (7 rows of 26 days each)
   const rows = [];
@@ -85,52 +85,54 @@ export function WorkoutStreakTracker({
   return (
     <Card className={cn("overflow-hidden", className)}>
       <CardHeader className="pb-2">
-        <CardTitle className="text-lg font-semibold">Workout Streak</CardTitle>
-        <CardDescription>Track your consistency over time</CardDescription>
+        <CardTitle className="text-lg font-semibold">Lift Streak</CardTitle>
+        <CardDescription>Track your facial fitness consistency over time</CardDescription>
       </CardHeader>
       
       <CardContent>
         {/* Streak visualization */}
-        <div className="mb-4">
-          <div className="grid grid-rows-7 gap-2">
-            {rows.map((row, rowIndex) => (
-              <div key={`row-${rowIndex}`} className="flex gap-2">
-                {row.map((day, dayIndex) => (
-                  <TooltipProvider key={`day-${rowIndex}-${dayIndex}`}>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <div 
-                          className={cn(
-                            "w-3 h-3 rounded-sm",
-                            day.completed 
-                              ? "bg-primary hover:bg-primary/90" 
-                              : "bg-muted-foreground/20 hover:bg-muted-foreground/30 dark:bg-muted-foreground/30 dark:hover:bg-muted-foreground/40",
-                            "transition-colors duration-200 cursor-pointer"
-                          )}
-                        />
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p className="font-medium">{format(day.date, "MMM d, yyyy")}</p>
-                        <p className={day.completed ? "text-primary" : "text-muted-foreground"}>
-                          {day.completed ? "Workout completed ✓" : "No workout"}
-                        </p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                ))}
-              </div>
-            ))}
-          </div>
-          
-          {/* Legend */}
-          <div className="flex items-center justify-end gap-4 mt-2 text-xs text-muted-foreground">
-            <div className="flex items-center gap-1.5">
-              <div className="w-3 h-3 rounded-sm bg-primary"></div>
-              <span>Workout completed</span>
+        <div className="mb-4 overflow-x-auto">
+          <div className="min-w-[600px] md:min-w-0 md:w-full">
+            <div className="grid grid-rows-7 gap-[0.15rem] xs:gap-1 sm:gap-1.5 md:gap-2">
+              {rows.map((row, rowIndex) => (
+                <div key={`row-${rowIndex}`} className="flex gap-[0.15rem] xs:gap-1 sm:gap-1.5 md:gap-2">
+                  {row.map((day, dayIndex) => (
+                    <TooltipProvider key={`day-${rowIndex}-${dayIndex}`}>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div 
+                            className={cn(
+                              "w-[0.4rem] h-[0.4rem] xs:w-2 xs:h-2 sm:w-2.5 sm:h-2.5 md:w-3 md:h-3 rounded-sm",
+                              day.completed 
+                                ? "bg-primary hover:bg-primary/90" 
+                                : "bg-muted-foreground/20 hover:bg-muted-foreground/30 dark:bg-muted-foreground/30 dark:hover:bg-muted-foreground/40",
+                              "transition-colors duration-200 cursor-pointer"
+                            )}
+                          />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p className="font-medium">{format(day.date, "MMM d, yyyy")}</p>
+                          <p className={day.completed ? "text-primary" : "text-muted-foreground"}>
+                            {day.completed ? "Lift completed ✓" : "No lift"}
+                          </p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  ))}
+                </div>
+              ))}
             </div>
-            <div className="flex items-center gap-1.5">
-              <div className="w-3 h-3 rounded-sm bg-muted-foreground/20 dark:bg-muted-foreground/30"></div>
-              <span>No workout</span>
+            
+            {/* Legend */}
+            <div className="flex items-center justify-end gap-4 mt-2 text-xs text-muted-foreground">
+              <div className="flex items-center gap-1.5">
+                <div className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-sm bg-primary"></div>
+                <span>Lift completed</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <div className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-sm bg-muted-foreground/20 dark:bg-muted-foreground/30"></div>
+                <span>No lift</span>
+              </div>
             </div>
           </div>
         </div>
@@ -146,8 +148,8 @@ export function WorkoutStreakTracker({
             <p className="text-2xl font-bold">{streakData.longestStreak}</p>
           </div>
           <div className="text-center">
-            <p className="text-sm text-muted-foreground">Total Workouts</p>
-            <p className="text-2xl font-bold">{streakData.totalWorkouts}</p>
+            <p className="text-sm text-muted-foreground">Total Lifts</p>
+            <p className="text-2xl font-bold">{streakData.totalLifts}</p>
           </div>
         </div>
       </CardContent>
