@@ -25,7 +25,7 @@ function LoadingSpinner() {
 function SettingsContent() {
   const { user, supabase } = useAuth();
   const router = useRouter();
-  const { theme, setTheme } = useTheme();
+  const { setTheme } = useTheme();
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [preferences, setPreferences] = useState({
