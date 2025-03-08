@@ -46,6 +46,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import Link from 'next/link';
 import { WorkoutGallery, WorkoutSession, Exercise } from "@/components/ui/workout-gallery";
+import { WorkoutStreakTracker } from "@/components/ui/workout-streak-tracker";
 
 const AUTH_TIMEOUT = 15000; // 15 seconds
 
@@ -322,6 +323,39 @@ export default function Dashboard() {
   // Get a week of workouts for the gallery
   const weekWorkouts = generateWeekOfWorkouts();
   
+  // Generate sample workout dates for the streak tracker
+  const generateSampleWorkoutDates = () => {
+    const dates: string[] = [];
+    const today = new Date();
+    
+    // Generate a pattern of workouts for the past 6 months
+    for (let i = 0; i < 182; i++) {
+      const date = new Date(today);
+      date.setDate(date.getDate() - i);
+      
+      // Create a pattern: more workouts in recent months, fewer in earlier months
+      const dayOfWeek = date.getDay(); // 0 = Sunday, 6 = Saturday
+      const monthsAgo = Math.floor(i / 30);
+      
+      // Recent months: workout on Monday, Wednesday, Friday
+      if (monthsAgo < 2 && (dayOfWeek === 1 || dayOfWeek === 3 || dayOfWeek === 5)) {
+        dates.push(date.toISOString());
+      } 
+      // Middle months: workout on Monday and Thursday
+      else if (monthsAgo >= 2 && monthsAgo < 4 && (dayOfWeek === 1 || dayOfWeek === 4)) {
+        dates.push(date.toISOString());
+      }
+      // Earlier months: occasional workouts
+      else if (monthsAgo >= 4 && Math.random() < 0.2 && dayOfWeek !== 0 && dayOfWeek !== 6) {
+        dates.push(date.toISOString());
+      }
+    }
+    
+    return dates;
+  };
+  
+  const workoutDates = generateSampleWorkoutDates();
+  
   // Convert the workouts to the format expected by WorkoutGallery
   const galleryWorkouts: WorkoutSession[] = weekWorkouts.map(workout => {
     // Format the date
@@ -573,6 +607,11 @@ export default function Dashboard() {
             </Link>
           </CardContent>
         </Card>
+      </div>
+
+      {/* Workout Streak Tracker */}
+      <div className="mb-8">
+        <WorkoutStreakTracker workoutDates={workoutDates} />
       </div>
 
       {/* Dashboard Content */}

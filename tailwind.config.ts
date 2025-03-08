@@ -155,6 +155,9 @@ export default {
       margin: {
         'safe': 'env(safe-area-inset-bottom)',
       },
+      gridTemplateColumns: {
+        '26': 'repeat(26, minmax(0, 1fr))',
+      },
   	}
   },
   plugins: [
