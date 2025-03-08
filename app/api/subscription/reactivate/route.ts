@@ -18,7 +18,7 @@ export const POST = withCors(async function POST(request: NextRequest) {
       const body = await request.json();
       subscriptionId = body.subscriptionId || null;
       userId = body.userId || null;
-    } catch (_) {
+    } catch {
       // If there's no body or it can't be parsed, that's okay
       console.log('No request body or invalid JSON');
     }
