@@ -13,7 +13,7 @@ export interface WorkoutLevel {
   label: string;
 }
 
-export interface DailyWorkoutProps {
+export interface DailyLiftProps {
   id: string;
   title: string;
   description?: string;
@@ -23,7 +23,7 @@ export interface DailyWorkoutProps {
   level: WorkoutLevel;
 }
 
-export const DailyWorkoutCard: React.FC<DailyWorkoutProps> = ({
+export const DailyLiftCard: React.FC<DailyLiftProps> = ({
   id,
   title,
   description,
@@ -54,7 +54,7 @@ export const DailyWorkoutCard: React.FC<DailyWorkoutProps> = ({
   };
 
   // Determine the workout URL
-  const workoutUrl = id === 'today-workout' ? '/workouts/today' : `/workouts/${id}`;
+  const liftUrl = id === 'today-workout' ? '/workouts/today' : `/workouts/${id}`;
 
   return (
     <Card className="overflow-hidden transition-all hover:shadow-md">
@@ -78,7 +78,7 @@ export const DailyWorkoutCard: React.FC<DailyWorkoutProps> = ({
       <CardHeader className="pb-2">
         <CardTitle className="text-xl font-bold">{title}</CardTitle>
         <CardDescription className="line-clamp-2">
-          {description || "Today's facial fitness workout to keep your muscles toned and lifted."}
+          {description || "Today's facial fitness lift to keep your muscles toned and lifted."}
         </CardDescription>
       </CardHeader>
       
@@ -100,9 +100,9 @@ export const DailyWorkoutCard: React.FC<DailyWorkoutProps> = ({
       </CardContent>
       
       <CardFooter>
-        <Link href={workoutUrl} className="w-full">
+        <Link href={liftUrl} className="w-full">
           <Button className="w-full" variant="default">
-            Start Workout <ChevronRight className="ml-2 h-4 w-4" />
+            Start Lift <ChevronRight className="ml-2 h-4 w-4" />
           </Button>
         </Link>
       </CardFooter>
@@ -110,4 +110,7 @@ export const DailyWorkoutCard: React.FC<DailyWorkoutProps> = ({
   );
 };
 
-export default DailyWorkoutCard; 
+// For backward compatibility
+export const DailyWorkoutCard = DailyLiftCard;
+
+export default DailyLiftCard; 

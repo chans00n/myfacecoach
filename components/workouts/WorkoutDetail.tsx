@@ -10,7 +10,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Clock, Calendar, Dumbbell, CheckCircle2, Info } from "lucide-react";
 import Image from "next/image";
 
-interface WorkoutDetailProps {
+interface LiftDetailProps {
   workout: Workout;
 }
 
@@ -115,17 +115,31 @@ const WorkoutSection: React.FC<{ title: string; description?: string; exercises:
   );
 };
 
-export const WorkoutDetail: React.FC<WorkoutDetailProps> = ({ workout }) => {
+export const LiftDetail: React.FC<LiftDetailProps> = ({ workout }) => {
   const formattedDate = new Intl.DateTimeFormat('en-US', {
     weekday: 'long',
     month: 'long',
     day: 'numeric',
   }).format(workout.date);
 
+  // Determine the badge color based on the workout level
+  const getLevelColor = (level: string) => {
+    switch (level.toLowerCase()) {
+      case 'basic':
+        return 'bg-green-100 text-green-800 hover:bg-green-100';
+      case 'intermediate':
+        return 'bg-blue-100 text-blue-800 hover:bg-blue-100';
+      case 'advanced':
+        return 'bg-purple-100 text-purple-800 hover:bg-purple-100';
+      default:
+        return 'bg-gray-100 text-gray-800 hover:bg-gray-100';
+    }
+  };
+
   return (
     <div className="container mx-auto py-6">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Workout Summary */}
+        {/* Lift Summary */}
         <div className="lg:col-span-1">
           <Card className="sticky top-6">
             <div className="relative h-48 w-full">
@@ -138,7 +152,7 @@ export const WorkoutDetail: React.FC<WorkoutDetailProps> = ({ workout }) => {
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
               <Badge 
-                className="absolute top-3 right-3"
+                className={`absolute top-3 right-3 ${getLevelColor(workout.level.value)}`}
                 variant="outline"
               >
                 {workout.level.label}
@@ -192,18 +206,18 @@ export const WorkoutDetail: React.FC<WorkoutDetailProps> = ({ workout }) => {
             </CardContent>
             
             <CardFooter>
-              <Button className="w-full">Start Workout</Button>
+              <Button className="w-full">Start Lift</Button>
             </CardFooter>
           </Card>
         </div>
         
-        {/* Workout Details */}
+        {/* Lift Details */}
         <div className="lg:col-span-2">
           <Tabs defaultValue="all" className="w-full">
             <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="all">All Steps</TabsTrigger>
               <TabsTrigger value="warm-up">Warm-Up</TabsTrigger>
-              <TabsTrigger value="main">Main Workout</TabsTrigger>
+              <TabsTrigger value="main">Main Lift</TabsTrigger>
               <TabsTrigger value="cool-down">Cool-Down</TabsTrigger>
             </TabsList>
             
@@ -257,4 +271,7 @@ export const WorkoutDetail: React.FC<WorkoutDetailProps> = ({ workout }) => {
   );
 };
 
-export default WorkoutDetail; 
+// For backward compatibility
+export const WorkoutDetail = LiftDetail;
+
+export default LiftDetail; 

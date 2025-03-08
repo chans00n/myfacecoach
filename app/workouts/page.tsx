@@ -2,11 +2,11 @@
 
 import React from 'react';
 import { generateWeekOfWorkouts } from '@/utils/mockWorkouts';
-import DailyWorkoutCard from '@/components/workouts/DailyWorkoutCard';
+import { DailyLiftCard } from '@/components/workouts/DailyWorkoutCard';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Calendar, Info } from "lucide-react";
 
-export default function WorkoutsPage() {
+export default function LiftsPage() {
   // Get all workouts for the week
   const workouts = generateWeekOfWorkouts();
   
@@ -18,9 +18,9 @@ export default function WorkoutsPage() {
     <div className="container mx-auto py-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
         <div>
-          <h1 className="text-3xl font-bold">Facial Fitness Workouts</h1>
+          <h1 className="text-3xl font-bold">Facial Fitness Lifts</h1>
           <p className="text-muted-foreground mt-1">
-            Your weekly workout schedule based on the MYFC methodology
+            Your weekly lift schedule based on the MYFC methodology
           </p>
         </div>
         <div className="flex items-center mt-2 md:mt-0 text-sm">
@@ -32,9 +32,9 @@ export default function WorkoutsPage() {
       <div className="bg-blue-50 p-4 rounded-md mb-6 flex items-start">
         <Info className="h-5 w-5 mr-3 mt-0.5 text-blue-600 flex-shrink-0" />
         <div>
-          <h3 className="font-medium text-blue-800">About Your Workout Schedule</h3>
+          <h3 className="font-medium text-blue-800">About Your Lift Schedule</h3>
           <p className="text-sm text-blue-700 mt-1">
-            Following the MYFC methodology, your weekly schedule includes regular facial fitness workouts and special Texas Cardio days (Tuesday and Friday). 
+            Following the MYFC methodology, your weekly schedule includes regular facial fitness lifts and special Texas Cardio days (Tuesday and Friday). 
             Texas Cardio days focus on massage techniques to boost circulation and give your facial muscles a break from lifting.
           </p>
         </div>
@@ -42,15 +42,15 @@ export default function WorkoutsPage() {
       
       <Tabs defaultValue="all" className="w-full">
         <TabsList className="grid w-full grid-cols-3 mb-6">
-          <TabsTrigger value="all">All Workouts</TabsTrigger>
-          <TabsTrigger value="regular">Regular Workouts</TabsTrigger>
+          <TabsTrigger value="all">All Lifts</TabsTrigger>
+          <TabsTrigger value="regular">Regular Lifts</TabsTrigger>
           <TabsTrigger value="texas-cardio">Texas Cardio Days</TabsTrigger>
         </TabsList>
         
         <TabsContent value="all">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {workouts.map((workout) => (
-              <DailyWorkoutCard
+              <DailyLiftCard
                 key={workout.id}
                 id={workout.id}
                 title={workout.title}
@@ -67,7 +67,7 @@ export default function WorkoutsPage() {
         <TabsContent value="regular">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {regularWorkouts.map((workout) => (
-              <DailyWorkoutCard
+              <DailyLiftCard
                 key={workout.id}
                 id={workout.id}
                 title={workout.title}
@@ -84,7 +84,7 @@ export default function WorkoutsPage() {
         <TabsContent value="texas-cardio">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {texasCardioWorkouts.map((workout) => (
-              <DailyWorkoutCard
+              <DailyLiftCard
                 key={workout.id}
                 id={workout.id}
                 title={workout.title}

@@ -46,16 +46,16 @@ const data = {
       items: [],
     },
     {
-      title: "Workouts",
+      title: "Lifts",
       url: "/workouts",
       icon: Frame,
       items: [
         {
-          title: "Today's Workout",
+          title: "Today's Lift",
           url: "/workouts/today",
         },
         {
-          title: "All Workouts",
+          title: "All Lifts",
           url: "/workouts",
         },
       ],

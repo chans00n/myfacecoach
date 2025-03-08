@@ -41,7 +41,7 @@ import {
   RadialBarChart,
 } from "recharts";
 import { getTodayWorkout } from '@/utils/mockWorkouts';
-import DailyWorkoutCard from '@/components/workouts/DailyWorkoutCard';
+import { DailyLiftCard } from '@/components/workouts/DailyWorkoutCard';
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import Link from 'next/link';
@@ -462,13 +462,13 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Today's Workout Section */}
+      {/* Today's Lift Section */}
       <div className="mb-8">
-        <h3 className="text-xl font-bold mb-4">Today&apos;s Workout</h3>
+        <h3 className="text-xl font-bold mb-4">Today&apos;s Lift</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Workout Card */}
+          {/* Lift Card */}
           <div className="md:col-span-2">
-            <DailyWorkoutCard 
+            <DailyLiftCard 
               id={todayWorkout.id}
               title={todayWorkout.title}
               description={todayWorkout.description}
@@ -506,7 +506,7 @@ export default function Dashboard() {
                   <div className="bg-green-50 p-3 rounded-md">
                     <h4 className="font-medium text-sm">Full Facial Workout</h4>
                     <p className="text-xs mt-1">
-                      Today&apos;s workout includes all three steps: warm-up, lifts, and cool-down for a complete facial fitness routine.
+                      Today&apos;s lift includes all three steps: warm-up, lifts, and cool-down for a complete facial fitness routine.
                     </p>
                   </div>
                 )}
