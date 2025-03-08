@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { LogOut, Settings, User } from "lucide-react"
+import Link from "next/link"
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
@@ -12,10 +13,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { Button } from "@/components/ui/button"
 import { useAuth } from "@/contexts/AuthContext"
 import { cn } from "@/lib/utils"
 import { useSidebar } from "@/components/ui/sidebar"
 
+// Keep the interface for backward compatibility
 interface UserData {
   name: string
   email: string
@@ -23,59 +26,58 @@ interface UserData {
 }
 
 interface NavUserProps {
-  user: UserData
+  user?: UserData
 }
 
-export function NavUser({ user }: NavUserProps) {
-  const { signOut } = useAuth()
+export function NavUser({ user: propUser }: NavUserProps) {
+  const { user: authUser, signOut } = useAuth()
   const { state } = useSidebar()
   const isCollapsed = state === "collapsed"
+  
+  // Use auth user data if available, otherwise fall back to prop user
+  const displayName = authUser?.email?.split('@')[0] || propUser?.name || 'User'
+  const email = authUser?.email || propUser?.email || ''
+  const avatarUrl = authUser?.user_metadata?.avatar_url || propUser?.avatar || ''
+  const initial = (displayName?.charAt(0) || 'U').toUpperCase()
   
   return (
     <div className={cn(
       "flex items-center p-4",
       isCollapsed ? "justify-center" : "justify-between"
     )}>
-      <div className={cn(
-        "flex items-center",
-        isCollapsed ? "gap-0" : "gap-2"
-      )}>
-        <Avatar className="h-8 w-8">
-          <AvatarImage src={user.avatar} alt={user.name} />
-          <AvatarFallback>{user.name.charAt(0).toUpperCase()}</AvatarFallback>
-        </Avatar>
-        <div className={cn(
-          "grid gap-0.5 text-sm transition-all duration-200",
-          isCollapsed ? "w-0 opacity-0" : "w-auto opacity-100"
-        )}>
-          <div className="font-medium">{user.name}</div>
-          <div className="text-xs text-muted-foreground">{user.email}</div>
-        </div>
-      </div>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <button className={cn(
-            "flex h-8 w-8 items-center justify-center rounded-md hover:bg-accent hover:text-accent-foreground",
-            isCollapsed ? "hidden" : "flex"
+          <Button variant="ghost" className={cn(
+            "flex items-center gap-2 p-0 h-auto hover:bg-transparent",
+            isCollapsed ? "w-8 justify-center" : "w-auto justify-start"
           )}>
-            <Settings className="h-4 w-4" />
-            <span className="sr-only">Settings</span>
-          </button>
+            <Avatar className="h-8 w-8">
+              <AvatarImage src={avatarUrl} alt={displayName} />
+              <AvatarFallback>{initial}</AvatarFallback>
+            </Avatar>
+            <div className={cn(
+              "grid gap-0.5 text-sm transition-all duration-200 text-left",
+              isCollapsed ? "w-0 opacity-0" : "w-auto opacity-100"
+            )}>
+              <div className="font-medium">{displayName}</div>
+              <div className="text-xs text-muted-foreground">{email}</div>
+            </div>
+          </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuLabel>My Account</DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuItem asChild>
-            <a href="/profile">
+            <Link href="/profile">
               <User className="mr-2 h-4 w-4" />
               <span>Profile</span>
-            </a>
+            </Link>
           </DropdownMenuItem>
           <DropdownMenuItem asChild>
-            <a href="/settings">
+            <Link href="/settings">
               <Settings className="mr-2 h-4 w-4" />
               <span>Settings</span>
-            </a>
+            </Link>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => signOut()}>

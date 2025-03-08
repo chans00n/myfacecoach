@@ -176,7 +176,7 @@ export function AppSidebar({ className, ...props }: React.ComponentProps<typeof 
         <NavProjects projects={data.projects} />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>
