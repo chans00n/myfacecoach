@@ -517,18 +517,12 @@ export default function Dashboard() {
                 Welcome to your dashboard overview
               </p>
             </div>
-            <div className="flex items-center space-x-4">
-              <span className="text-sm bg-primary/10 text-primary px-3 py-1 rounded-full font-medium">
-                {isInTrial ? "Trial Period" : "Premium Plan"}
-              </span>
-            </div>
           </div>
         </div>
       </div>
 
       {/* Lift Gallery Section */}
       <div className="mb-8">
-        <h3 className="text-xl font-bold mb-4">Your Lift Plan</h3>
         <div className="grid grid-cols-1 gap-6">
           <WorkoutGallery
             workouts={workouts}
