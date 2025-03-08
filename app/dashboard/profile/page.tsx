@@ -34,7 +34,7 @@ function LoadingSpinner() {
 function ProfileContent() {
   const router = useRouter();
   const { user, isLoading: isAuthLoading } = useAuth();
-  const { subscription: baseSubscription, isLoading: isSubLoading, fetchSubscription } = useSubscription();
+  const { subscription: baseSubscription, fetchSubscription } = useSubscription();
   const subscription = baseSubscription as ExtendedSubscription | null;
   const [isCancelling, setIsCancelling] = useState(false);
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
