@@ -159,7 +159,7 @@ export function AppSidebar({ className, ...props }: React.ComponentProps<typeof 
                     alt="MyFaceCoach Logo" 
                     width={100} 
                     height={100} 
-                    className="h-auto w-auto"
+                    className="h-auto"
                   />
                 </div>
               </Link>
