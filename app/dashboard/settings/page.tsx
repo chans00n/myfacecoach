@@ -109,22 +109,8 @@ function SettingsContent() {
     }
 
     const fetchPreferences = async () => {
+      setIsLoading(true);
       try {
-        // First check localStorage for theme preference
-        try {
-          const savedTheme = localStorage.getItem('theme_preference');
-          if (savedTheme) {
-            setTheme(savedTheme);
-            setPreferences(prev => ({ 
-              ...prev, 
-              dark_mode: savedTheme === 'dark' 
-            }));
-          }
-        } catch (e) {
-          console.error('Failed to read theme from localStorage:', e);
-        }
-
-        // Then try to get from Supabase
         const { data, error } = await supabase
           .from('user_preferences')
           .select('*')
@@ -137,15 +123,9 @@ function SettingsContent() {
         }
 
         if (data) {
-          const darkMode = data.dark_mode ?? false;
-          setPreferences({
-            email_notifications: data.email_notifications ?? true,
-            dark_mode: darkMode,
-            language: data.language ?? 'english'
-          });
-          
-          // Set theme based on stored preference
-          setTheme(darkMode ? 'dark' : 'light');
+          setPreferences(data);
+          // Set theme based on user preference
+          setTheme(data.dark_mode ? 'dark' : 'light');
         }
       } catch (error) {
         console.error('Error fetching preferences:', error);
@@ -155,7 +135,7 @@ function SettingsContent() {
     };
 
     fetchPreferences();
-  }, [user, router, supabase]);
+  }, [user, router, supabase, setTheme]);
 
   const handleDarkModeToggle = (checked: boolean) => {
     setPreferences({...preferences, dark_mode: checked});

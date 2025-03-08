@@ -18,7 +18,7 @@ export const POST = withCors(async function POST(request: NextRequest) {
       const body = await request.json();
       subscriptionId = body.subscriptionId || null;
       userId = body.userId || null;
-    } catch (e) {
+    } catch (_) {
       // If there's no body or it can't be parsed, that's okay
       console.log('No request body or invalid JSON');
     }
@@ -79,8 +79,8 @@ export const POST = withCors(async function POST(request: NextRequest) {
               userId = data.user.id;
               console.log('Got user ID from token:', userId);
             }
-          } catch (e) {
-            console.error('Error getting user from token:', e);
+          } catch (error) {
+            console.error('Error getting user from token:', error);
           }
         }
       }
@@ -98,8 +98,8 @@ export const POST = withCors(async function POST(request: NextRequest) {
             subscriptionId = data.stripe_subscription_id;
             console.log('Got subscriptionId from user:', subscriptionId);
           }
-        } catch (e) {
-          console.error('Error getting subscription from user ID:', e);
+        } catch (error) {
+          console.error('Error getting subscription from user ID:', error);
         }
       }
     }
