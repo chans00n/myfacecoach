@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/carousel";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
+import { AspectRatio } from "@/components/ui/aspect-ratio";
 
 export interface WorkoutSession {
   id: string;
@@ -131,20 +132,24 @@ export function WorkoutGallery({
                     className="cursor-pointer"
                     onClick={() => setActiveWorkout(workout.id)}
                   >
-                    {/* Lift Image */}
+                    {/* Lift Image with AspectRatio */}
                     {workout.imageUrl && (
-                      <div className="relative w-full h-40 mb-3 rounded-lg overflow-hidden">
-                        <Image
-                          src={workout.imageUrl}
-                          alt={workout.title}
-                          fill
-                          className="object-cover transition-transform group-hover:scale-105"
-                        />
-                        {workout.completed && (
-                          <div className="absolute top-2 right-2 px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
-                            Completed
+                      <div className="rounded-lg overflow-hidden mb-3">
+                        <AspectRatio ratio={16 / 9} className="bg-muted">
+                          <div className="relative w-full h-full">
+                            <Image
+                              src={workout.imageUrl}
+                              alt={workout.title}
+                              fill
+                              className="object-cover transition-transform group-hover:scale-105"
+                            />
+                            {workout.completed && (
+                              <div className="absolute top-2 right-2 px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
+                                Completed
+                              </div>
+                            )}
                           </div>
-                        )}
+                        </AspectRatio>
                       </div>
                     )}
                     
