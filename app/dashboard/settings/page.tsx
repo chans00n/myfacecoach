@@ -9,6 +9,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { toast } from '@/components/ui/use-toast';
+import { Toaster } from '@/components/ui/toaster';
 
 function LoadingSpinner() {
   return (
@@ -22,6 +25,7 @@ function SettingsContent() {
   const { user, supabase } = useAuth();
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
   const [preferences, setPreferences] = useState({
     email_notifications: true,
     dark_mode: false,
@@ -63,7 +67,7 @@ function SettingsContent() {
     if (!user) return;
 
     try {
-      setIsLoading(true);
+      setIsSaving(true);
       const { error } = await supabase
         .from('user_preferences')
         .upsert({
@@ -75,10 +79,20 @@ function SettingsContent() {
         });
 
       if (error) throw error;
+      
+      toast({
+        title: "Settings saved",
+        description: "Your preferences have been updated successfully.",
+      });
     } catch (error) {
       console.error('Error saving preferences:', error);
+      toast({
+        title: "Error saving settings",
+        description: "There was a problem saving your preferences. Please try again.",
+        variant: "destructive",
+      });
     } finally {
-      setIsLoading(false);
+      setIsSaving(false);
     }
   };
 
@@ -103,7 +117,7 @@ function SettingsContent() {
               <CardTitle>General Settings</CardTitle>
               <CardDescription>Manage your general application preferences.</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-6">
               <div className="flex items-center justify-between">
                 <div>
                   <Label htmlFor="dark-mode">Dark Mode</Label>
@@ -118,20 +132,26 @@ function SettingsContent() {
               
               <div className="space-y-2">
                 <Label htmlFor="language">Language</Label>
-                <select 
-                  id="language"
-                  className="w-full p-2 border rounded-md"
+                <Select 
                   value={preferences.language}
-                  onChange={(e) => setPreferences({...preferences, language: e.target.value})}
+                  onValueChange={(value) => setPreferences({...preferences, language: value})}
                 >
-                  <option value="english">English</option>
-                  <option value="spanish">Spanish</option>
-                  <option value="french">French</option>
-                </select>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a language" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="english">English</SelectItem>
+                    <SelectItem value="spanish">Spanish</SelectItem>
+                    <SelectItem value="french">French</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-sm text-muted-foreground">Choose your preferred language for the application</p>
               </div>
             </CardContent>
             <CardFooter>
-              <Button onClick={handleSavePreferences}>Save Changes</Button>
+              <Button onClick={handleSavePreferences} disabled={isSaving}>
+                {isSaving ? 'Saving...' : 'Save Changes'}
+              </Button>
             </CardFooter>
           </Card>
         </TabsContent>
@@ -148,10 +168,19 @@ function SettingsContent() {
                 <Input id="email" value={user?.email || ''} disabled />
                 <p className="text-sm text-muted-foreground">Your email address cannot be changed</p>
               </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="user-id">User ID</Label>
+                <Input id="user-id" value={user?.id || ''} disabled />
+                <p className="text-sm text-muted-foreground">Your unique user identifier</p>
+              </div>
             </CardContent>
-            <CardFooter>
+            <CardFooter className="flex justify-between">
               <Button variant="outline" onClick={() => router.push('/dashboard/profile')}>
                 Go to Profile
+              </Button>
+              <Button variant="destructive" onClick={() => router.push('/reset-password')}>
+                Reset Password
               </Button>
             </CardFooter>
           </Card>
@@ -163,7 +192,7 @@ function SettingsContent() {
               <CardTitle>Notification Settings</CardTitle>
               <CardDescription>Manage how you receive notifications.</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-6">
               <div className="flex items-center justify-between">
                 <div>
                   <Label htmlFor="email-notifications">Email Notifications</Label>
@@ -175,13 +204,29 @@ function SettingsContent() {
                   onCheckedChange={(checked) => setPreferences({...preferences, email_notifications: checked})}
                 />
               </div>
+              
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label htmlFor="marketing-emails">Marketing Emails</Label>
+                  <p className="text-sm text-muted-foreground">Receive promotional emails and updates</p>
+                </div>
+                <Switch 
+                  id="marketing-emails" 
+                  checked={false}
+                  disabled
+                />
+              </div>
             </CardContent>
             <CardFooter>
-              <Button onClick={handleSavePreferences}>Save Changes</Button>
+              <Button onClick={handleSavePreferences} disabled={isSaving}>
+                {isSaving ? 'Saving...' : 'Save Changes'}
+              </Button>
             </CardFooter>
           </Card>
         </TabsContent>
       </Tabs>
+      
+      <Toaster />
     </div>
   );
 }
