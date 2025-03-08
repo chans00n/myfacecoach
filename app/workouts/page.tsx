@@ -56,6 +56,7 @@ export default function LiftsPage() {
                 title={workout.title}
                 description={workout.description}
                 imageUrl={workout.imageUrl}
+                videoUrl={workout.videoUrl}
                 duration={workout.totalDuration}
                 date={workout.date}
                 level={workout.level}
@@ -73,6 +74,7 @@ export default function LiftsPage() {
                 title={workout.title}
                 description={workout.description}
                 imageUrl={workout.imageUrl}
+                videoUrl={workout.videoUrl}
                 duration={workout.totalDuration}
                 date={workout.date}
                 level={workout.level}
@@ -90,6 +92,7 @@ export default function LiftsPage() {
                 title={workout.title}
                 description={workout.description}
                 imageUrl={workout.imageUrl}
+                videoUrl={workout.videoUrl}
                 duration={workout.totalDuration}
                 date={workout.date}
                 level={workout.level}
