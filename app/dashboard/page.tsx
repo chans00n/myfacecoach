@@ -548,10 +548,10 @@ export default function Dashboard() {
                 </CardContent>
                 <CardFooter className="flex-col gap-1 text-sm pt-0">
                   <div className="flex items-center gap-2 font-medium leading-none">
-                    <span className={metric.trend === 'up' ? 'text-green-500' : 'text-red-500'}>
+                    <span className={metric.trend === 'up' ? 'text-primary' : 'text-destructive'}>
                       {metric.trend === 'up' ? 'Trending up' : 'Trending down'} by {metric.change}
                     </span>
-                    <TrendingUp className={`h-4 w-4 ${metric.trend === 'up' ? 'text-green-500' : 'text-red-500'} ${metric.trend === 'down' ? 'rotate-180' : ''}`} />
+                    <TrendingUp className={`h-4 w-4 ${metric.trend === 'up' ? 'text-primary' : 'text-destructive'} ${metric.trend === 'down' ? 'rotate-180' : ''}`} />
                   </div>
                 </CardFooter>
               </Card>
