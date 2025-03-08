@@ -83,17 +83,17 @@ export function LiftStreakTracker({
   }
 
   return (
-    <Card className={cn("overflow-hidden", className)}>
+    <Card className={cn("overflow-hidden h-full", className)}>
       <CardHeader className="pb-2">
         <CardTitle className="text-lg font-semibold">Lift Streak</CardTitle>
         <CardDescription>Track your facial fitness consistency over time</CardDescription>
       </CardHeader>
       
-      <CardContent>
+      <CardContent className="flex flex-col flex-1">
         {/* Streak visualization */}
-        <div className="mb-4">
-          <div className="w-full">
-            <div className="grid grid-cols-26 grid-rows-7 gap-x-[2px] gap-y-[2px] xs:gap-x-[3px] xs:gap-y-[3px] sm:gap-x-[4px] sm:gap-y-[4px] md:gap-x-[5px] md:gap-y-[5px]">
+        <div className="mb-4 flex-grow">
+          <div className="w-full h-full">
+            <div className="grid grid-cols-26 grid-rows-7 gap-x-[2px] gap-y-[2px] xs:gap-x-[3px] xs:gap-y-[3px] sm:gap-x-[4px] sm:gap-y-[4px] md:gap-x-[5px] md:gap-y-[5px] h-full">
               {streakData.lastSixMonths.map((day, index) => (
                 <TooltipProvider key={`day-${index}`}>
                   <Tooltip>

@@ -568,57 +568,16 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Methodology Highlight */}
-      <div className="mb-8">
-        <Card>
-          <CardHeader>
-            <CardTitle>MYFC Methodology</CardTitle>
-            <CardDescription>
-              Understanding the science behind your facial fitness routine
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <p className="text-sm">
-              The My Face Coach methodology is a comprehensive, science-based approach that mirrors traditional body fitness principles. 
-              Designed to help you achieve a more youthful, lifted, and defined appearance.
-            </p>
-            
-            <h3 className="font-medium text-sm mt-4">Today&apos;s Focus</h3>
-            {todayWorkout.isTexasCardioDay ? (
-              <div className="bg-blue-50 p-3 rounded-md">
-                <h4 className="font-medium text-sm">Texas Cardio Day</h4>
-                <p className="text-xs mt-1">
-                  Today focuses on massage techniques to boost circulation and give your facial muscles a break from lifting.
-                </p>
-              </div>
-            ) : (
-              <div className="bg-green-50 p-3 rounded-md">
-                <h4 className="font-medium text-sm">Full Facial Workout</h4>
-                <p className="text-xs mt-1">
-                  Today&apos;s lift includes all three steps: warm-up, lifts, and cool-down for a complete facial fitness routine.
-                </p>
-              </div>
-            )}
-            
-            <Link href="/methodology">
-              <Button variant="outline" className="w-full mt-2 text-xs" size="sm">
-                Learn More <ArrowRight className="ml-1 h-3 w-3" />
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
-      </div>
-
       {/* Lift Streak and User Activity Section */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
         {/* Lift Streak Tracker */}
-        <div className="lg:col-span-1">
-          <LiftStreakTracker liftDates={liftDates} />
+        <div className="lg:col-span-1 h-full flex">
+          <LiftStreakTracker liftDates={liftDates} className="flex-1" />
         </div>
 
         {/* User Activity Chart */}
-        <div className="lg:col-span-2">
-          <Card>
+        <div className="lg:col-span-2 h-full flex">
+          <Card className="flex-1">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <div className="space-y-1">
                 <CardTitle>User Activity</CardTitle>
@@ -748,6 +707,47 @@ export default function Dashboard() {
             </CardContent>
           </Card>
         </div>
+      </div>
+
+      {/* MYFC Methodology */}
+      <div className="mb-8">
+        <Card>
+          <CardHeader>
+            <CardTitle>MYFC Methodology</CardTitle>
+            <CardDescription>
+              Understanding the science behind your facial fitness routine
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-sm">
+              The My Face Coach methodology is a comprehensive, science-based approach that mirrors traditional body fitness principles. 
+              Designed to help you achieve a more youthful, lifted, and defined appearance.
+            </p>
+            
+            <h3 className="font-medium text-sm mt-4">Today&apos;s Focus</h3>
+            {todayWorkout.isTexasCardioDay ? (
+              <div className="bg-primary/10 dark:bg-primary/20 p-3 rounded-md">
+                <h4 className="font-medium text-sm text-foreground">Texas Cardio Day</h4>
+                <p className="text-xs mt-1 text-foreground">
+                  Today focuses on massage techniques to boost circulation and give your facial muscles a break from lifting.
+                </p>
+              </div>
+            ) : (
+              <div className="bg-primary/10 dark:bg-primary/20 p-3 rounded-md">
+                <h4 className="font-medium text-sm text-foreground">Full Facial Workout</h4>
+                <p className="text-xs mt-1 text-foreground">
+                  Today&apos;s lift includes all three steps: warm-up, lifts, and cool-down for a complete facial fitness routine.
+                </p>
+              </div>
+            )}
+            
+            <Link href="/methodology">
+              <Button variant="outline" className="w-full mt-2 text-xs" size="sm">
+                Learn More <ArrowRight className="ml-1 h-3 w-3" />
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Recent Activity - Full Width */}
