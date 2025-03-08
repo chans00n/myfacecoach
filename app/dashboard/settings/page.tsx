@@ -61,25 +61,44 @@ function SettingsContent() {
       const newDarkMode = theme === 'dark';
       setPreferences(prev => ({ ...prev, dark_mode: newDarkMode }));
       
+      // Save to localStorage as a fallback
+      try {
+        localStorage.setItem('theme_preference', theme);
+      } catch (e) {
+        console.error('Failed to save theme to localStorage:', e);
+      }
+      
       // Save to database without full form submission
       const saveThemePreference = async () => {
         try {
-          await supabase
-            .from('user_preferences')
-            .upsert({
-              user_id: user.id,
-              dark_mode: newDarkMode,
-              // Keep existing preferences for other fields
-              email_notifications: preferences.email_notifications,
-              language: preferences.language,
-              updated_at: new Date().toISOString()
-            });
+          // Only attempt to save to Supabase if we have a valid user
+          if (user?.id) {
+            const { error } = await supabase
+              .from('user_preferences')
+              .upsert({
+                user_id: user.id,
+                dark_mode: newDarkMode,
+                // Keep existing preferences for other fields
+                email_notifications: preferences.email_notifications,
+                language: preferences.language,
+                updated_at: new Date().toISOString()
+              });
+              
+            if (error) {
+              console.error('Supabase error saving theme preference:', error);
+            }
+          }
         } catch (error) {
           console.error('Error saving theme preference:', error);
         }
       };
       
-      saveThemePreference();
+      // Debounce the save operation to prevent too many API calls
+      const timeoutId = setTimeout(() => {
+        saveThemePreference();
+      }, 1000);
+      
+      return () => clearTimeout(timeoutId);
     }
   }, [theme, user, preferences, supabase]);
 
@@ -91,18 +110,42 @@ function SettingsContent() {
 
     const fetchPreferences = async () => {
       try {
-        const { data } = await supabase
+        // First check localStorage for theme preference
+        try {
+          const savedTheme = localStorage.getItem('theme_preference');
+          if (savedTheme) {
+            setTheme(savedTheme);
+            setPreferences(prev => ({ 
+              ...prev, 
+              dark_mode: savedTheme === 'dark' 
+            }));
+          }
+        } catch (e) {
+          console.error('Failed to read theme from localStorage:', e);
+        }
+
+        // Then try to get from Supabase
+        const { data, error } = await supabase
           .from('user_preferences')
           .select('*')
           .eq('user_id', user.id)
           .single();
 
+        if (error) {
+          console.error('Error fetching preferences:', error);
+          return;
+        }
+
         if (data) {
+          const darkMode = data.dark_mode ?? false;
           setPreferences({
             email_notifications: data.email_notifications ?? true,
-            dark_mode: data.dark_mode ?? false,
+            dark_mode: darkMode,
             language: data.language ?? 'english'
           });
+          
+          // Set theme based on stored preference
+          setTheme(darkMode ? 'dark' : 'light');
         }
       } catch (error) {
         console.error('Error fetching preferences:', error);
