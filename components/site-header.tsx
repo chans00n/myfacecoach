@@ -61,11 +61,11 @@ export function SiteHeader({ className }: React.HTMLAttributes<HTMLElement>) {
         <Separator orientation="vertical" className="mr-2 h-4" />
         
         {breadcrumbs.length > 0 && (
-          <Breadcrumb>
+          <Breadcrumb className="hidden md:block">
             <BreadcrumbList>
               {/* Only show MYFC as first item if we're not on the dashboard page */}
               {!(pathname === "/dashboard" && breadcrumbs.length === 1) && (
-                <BreadcrumbItem className="hidden md:block">
+                <BreadcrumbItem>
                   <BreadcrumbLink asChild>
                     <Link href="/dashboard">MYFC</Link>
                   </BreadcrumbLink>
@@ -75,7 +75,7 @@ export function SiteHeader({ className }: React.HTMLAttributes<HTMLElement>) {
                 <React.Fragment key={breadcrumb.href}>
                   {/* Only show separator if we're not on dashboard or this isn't the first item */}
                   {(!(pathname === "/dashboard" && breadcrumb === breadcrumbs[0])) && (
-                    <BreadcrumbSeparator className="hidden md:block" />
+                    <BreadcrumbSeparator />
                   )}
                   <BreadcrumbItem>
                     {breadcrumb.isLast ? (
