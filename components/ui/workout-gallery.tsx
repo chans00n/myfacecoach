@@ -95,17 +95,20 @@ export function WorkoutGallery({
             {description}
           </p>
         </div>
-        
-        {/* Navigation controls - shown below title on mobile, to the right on desktop */}
-        <div className="flex items-center gap-2 z-10">
-          <CarouselPrevious className="static h-8 w-8 translate-x-0 translate-y-0 bg-background border-border" />
-          <CarouselNext className="static h-8 w-8 translate-x-0 translate-y-0 bg-background border-border" />
-        </div>
       </div>
 
       {/* Lift Carousel */}
       <div className="mb-6 relative">
         <Carousel className="w-full" opts={{ align: isMobile ? "start" : "center", containScroll: "trimSnaps" }}>
+          {/* Custom navigation controls - positioned based on screen size */}
+          <div className={cn(
+            "flex items-center gap-2 z-10",
+            "mb-4 md:absolute md:right-0 md:-top-12"
+          )}>
+            <CarouselPrevious className="static h-8 w-8 translate-x-0 translate-y-0 bg-background border-border" />
+            <CarouselNext className="static h-8 w-8 translate-x-0 translate-y-0 bg-background border-border" />
+          </div>
+          
           <CarouselContent className="-ml-2 md:-ml-4">
             {workouts.map((workout) => (
               <CarouselItem 
