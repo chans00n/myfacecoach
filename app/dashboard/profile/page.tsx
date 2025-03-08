@@ -190,6 +190,21 @@ function ProfileContent() {
     return { text: 'Inactive', variant: 'destructive' as const };
   };
 
+  // Helper function to get the plan name based on subscription status
+  const getPlanName = () => {
+    if (!subscription) return 'non-MYFC Member';
+    
+    if (subscription.status === 'active') {
+      return 'MYFC Member';
+    }
+    
+    if (subscription.status === 'trialing') {
+      return 'Trial Member';
+    }
+    
+    return 'non-MYFC Member';
+  };
+
   if (isAuthLoading) {
     return <LoadingSpinner />;
   }
@@ -259,7 +274,7 @@ function ProfileContent() {
                 <div className="grid gap-4 md:grid-cols-2">
                   <div>
                     <h3 className="text-sm font-medium text-muted-foreground">Plan</h3>
-                    <p className="mt-1 font-medium">{subscription.plan_name || 'Premium Plan'}</p>
+                    <p className="mt-1 font-medium">{getPlanName()}</p>
                   </div>
                   <div>
                     <h3 className="text-sm font-medium text-muted-foreground">Billing Period</h3>

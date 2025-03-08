@@ -135,6 +135,21 @@ function ProfileContent() {
     }
   };
 
+  // Helper function to get the plan name based on subscription status
+  const getPlanName = () => {
+    if (!subscription) return 'non-MYFC Member';
+    
+    if (subscription.status === 'active') {
+      return 'MYFC Member';
+    }
+    
+    if (subscription.status === 'trialing') {
+      return 'Trial Member';
+    }
+    
+    return 'non-MYFC Member';
+  };
+
   if (!user) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -185,6 +200,7 @@ function ProfileContent() {
                   {subscription.status.charAt(0).toUpperCase() + subscription.status.slice(1)}
                 </span>
               </p>
+              <p><span className="font-medium">Plan:</span> {getPlanName()}</p>
               <p><span className="font-medium">Started:</span> {new Date(subscription.created_at).toLocaleDateString()}</p>
               
               {subscription.status === 'canceled' ? (

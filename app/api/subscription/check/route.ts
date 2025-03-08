@@ -167,6 +167,10 @@ export const POST = withCors(async function POST(request: NextRequest) {
                 status: subscriptions.data[0].status,
                 current_period_end: new Date(subscriptions.data[0].current_period_end * 1000).toISOString(),
                 cancel_at_period_end: subscriptions.data[0].cancel_at_period_end,
+                plan_name: subscriptions.data[0].items.data[0]?.price?.nickname || 'MYFC Member',
+                interval: subscriptions.data[0].items.data[0]?.price?.recurring?.interval || 'month',
+                amount: subscriptions.data[0].items.data[0]?.price?.unit_amount || 0,
+                currency: subscriptions.data[0].items.data[0]?.price?.currency || 'usd',
               });
               console.log('Created subscription in Supabase');
             }
@@ -206,6 +210,10 @@ export const POST = withCors(async function POST(request: NextRequest) {
             current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
             cancel_at_period_end: subscription.cancel_at_period_end,
             updated_at: new Date().toISOString(),
+            plan_name: subscription.items.data[0]?.price?.nickname || 'MYFC Member',
+            interval: subscription.items.data[0]?.price?.recurring?.interval || 'month',
+            amount: subscription.items.data[0]?.price?.unit_amount || 0,
+            currency: subscription.items.data[0]?.price?.currency || 'usd',
           })
           .eq('stripe_subscription_id', stripeSubscriptionId);
         
@@ -222,7 +230,7 @@ export const POST = withCors(async function POST(request: NextRequest) {
         currentPeriodEnd: new Date(subscription.current_period_end * 1000).toISOString(),
         plan: {
           id: subscription.items.data[0]?.price?.id,
-          name: subscription.items.data[0]?.price?.nickname || 'Premium Plan',
+          name: subscription.status === 'active' ? 'MYFC Member' : 'non-MYFC Member',
           amount: subscription.items.data[0]?.price?.unit_amount,
           currency: subscription.items.data[0]?.price?.currency,
           interval: subscription.items.data[0]?.price?.recurring?.interval,
