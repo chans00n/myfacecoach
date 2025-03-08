@@ -60,6 +60,7 @@ export interface Workout {
   title: string;
   description: string;
   imageUrl: string;
+  videoUrl?: string; // Main workout video URL
   date: Date;
   level: WorkoutLevel;
   isTexasCardioDay: boolean;

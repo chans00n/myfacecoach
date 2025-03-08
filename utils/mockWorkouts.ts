@@ -17,7 +17,8 @@ const mockWarmUpExercises: Exercise[] = [
       "Repeat 3-5 times"
     ],
     tips: ["Keep pressure very light", "Focus on smooth, flowing movements"],
-    imageUrl: "/images/dane-wetton-Raqd-o35Es4-unsplash.jpg"
+    imageUrl: "/images/dane-wetton-Raqd-o35Es4-unsplash.jpg",
+    videoUrl: "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
   },
   {
     id: "wu-2",
@@ -57,7 +58,8 @@ const mockMainWorkoutExercises: Exercise[] = [
       "Release and repeat"
     ],
     tips: ["Keep your neck relaxed", "Focus on the sensation in your forehead muscles"],
-    imageUrl: "/images/brut-carniollus-jGEsapFCLgw-unsplash.jpg"
+    imageUrl: "/images/brut-carniollus-jGEsapFCLgw-unsplash.jpg",
+    videoUrl: "https://storage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4"
   },
   {
     id: "mw-2",
@@ -136,7 +138,8 @@ const mockCoolDownExercises: Exercise[] = [
       "Release and repeat 3 times"
     ],
     tips: ["Breathe deeply while stretching", "Feel the release of tension"],
-    imageUrl: "/images/serge-le-strat-QkMqoLwhdnY-unsplash.jpg"
+    imageUrl: "/images/serge-le-strat-QkMqoLwhdnY-unsplash.jpg",
+    videoUrl: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4"
   },
   {
     id: "cd-2",
@@ -216,6 +219,25 @@ export const createMockWorkout = (
     return images[dayOfWeek % images.length];
   };
 
+  // Select an appropriate video based on the workout type
+  const getWorkoutVideo = () => {
+    if (isTexasCardioDay) {
+      return "https://storage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4";
+    }
+    
+    // Different videos for different days
+    const videos = [
+      "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+      "https://storage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
+      "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+      "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4",
+      "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4"
+    ];
+    
+    const dayOfWeek = date.getDay();
+    return videos[dayOfWeek % videos.length];
+  };
+
   return {
     id,
     title,
@@ -223,6 +245,7 @@ export const createMockWorkout = (
       ? "A special Texas Cardio day focused on massage techniques to boost circulation and give your facial muscles a break from lifting."
       : "A complete facial fitness workout following the MYFC methodology to tone, lift, and rejuvenate your facial muscles.",
     imageUrl: getWorkoutImage(),
+    videoUrl: getWorkoutVideo(),
     date,
     level: WORKOUT_LEVELS.find(l => l.value === level) || WORKOUT_LEVELS[0],
     isTexasCardioDay,
