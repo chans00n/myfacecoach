@@ -9,6 +9,8 @@ import { ThemeProvider } from "@/components/theme-provider";
 import Head from './head';
 import '@/utils/amplitude-fix';
 import { CookieConsent } from "@/components/ui/cookie-consent";
+import { useEffect } from 'react';
+import { initializeRealtimeConnection } from '@/utils/websocket-manager';
 // import { PostHogProvider } from '@/contexts/PostHogContext';
 // import { PostHogErrorBoundary } from '@/components/PostHogErrorBoundary';
 
@@ -19,6 +21,11 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Initialize WebSocket connection once
+  useEffect(() => {
+    initializeRealtimeConnection();
+  }, []);
+
   return (
     <html lang="en" suppressHydrationWarning>
       <Head />

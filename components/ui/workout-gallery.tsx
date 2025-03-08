@@ -69,7 +69,7 @@ export function WorkoutGallery({
         className
       )}
     >
-      {/* Header with Navigation Controls */}
+      {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
           <h3 className="text-lg font-semibold text-foreground">
@@ -79,15 +79,15 @@ export function WorkoutGallery({
             {description}
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <CarouselPrevious className="static h-8 w-8 translate-x-0 translate-y-0 bg-background border-border" />
-          <CarouselNext className="static h-8 w-8 translate-x-0 translate-y-0 bg-background border-border" />
-        </div>
       </div>
 
       {/* Lift Carousel */}
-      <div className="mb-6">
+      <div className="mb-6 relative">
         <Carousel className="w-full">
+          <div className="absolute right-0 -top-12 flex items-center gap-2 z-10">
+            <CarouselPrevious className="static h-8 w-8 translate-x-0 translate-y-0 bg-background border-border" />
+            <CarouselNext className="static h-8 w-8 translate-x-0 translate-y-0 bg-background border-border" />
+          </div>
           <CarouselContent>
             {workouts.map((workout) => (
               <CarouselItem key={workout.id} className="basis-full md:basis-1/2 lg:basis-1/3">
