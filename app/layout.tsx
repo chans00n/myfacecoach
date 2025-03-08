@@ -5,7 +5,6 @@ import "./globals.css";
 import { AuthProvider } from '@/contexts/AuthContext';
 import ProtectedRoute from '@/contexts/ProtectedRoute';
 import { Analytics } from "@vercel/analytics/react"
-import { usePathname } from "next/navigation";
 // import { PostHogProvider } from '@/contexts/PostHogContext';
 // import { PostHogErrorBoundary } from '@/components/PostHogErrorBoundary';
 
