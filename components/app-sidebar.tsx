@@ -13,6 +13,7 @@ import {
   SquareTerminal,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { useTheme } from "next-themes"
 
 import { NavMain } from "@/components/nav-main"
 import { NavProjects } from "@/components/nav-projects"
@@ -142,6 +143,7 @@ const data = {
 }
 
 export function AppSidebar({ className, ...props }: React.ComponentProps<typeof Sidebar>) {
+  const { resolvedTheme } = useTheme()
   return (
     <Sidebar 
       className={cn("border-r", className)} 
@@ -155,7 +157,7 @@ export function AppSidebar({ className, ...props }: React.ComponentProps<typeof 
               <Link href="/">
                 <div className="flex items-center justify-center">
                   <Image 
-                    src="/MYFC_logo.png" 
+                    src={resolvedTheme === "dark" ? "/MYFC_logo_white.png" : "/MYFC_logo.png"} 
                     alt="MyFaceCoach Logo" 
                     width={100} 
                     height={100} 
