@@ -40,11 +40,12 @@ import {
   RadialBar,
   RadialBarChart,
 } from "recharts";
-import { getTodayWorkout } from '@/utils/mockWorkouts';
+import { getTodayWorkout, generateWeekOfWorkouts } from '@/utils/mockWorkouts';
 import { DailyLiftCard } from '@/components/workouts/DailyWorkoutCard';
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import Link from 'next/link';
+import { WorkoutGallery, WorkoutSession, Exercise } from "@/components/ui/workout-gallery";
 
 const AUTH_TIMEOUT = 15000; // 15 seconds
 
@@ -317,6 +318,67 @@ export default function Dashboard() {
 
   // Get today's workout
   const todayWorkout = getTodayWorkout();
+  
+  // Get a week of workouts for the gallery
+  const weekWorkouts = generateWeekOfWorkouts();
+  
+  // Convert the workouts to the format expected by WorkoutGallery
+  const galleryWorkouts: WorkoutSession[] = weekWorkouts.map(workout => {
+    // Format the date
+    const formattedDate = new Intl.DateTimeFormat('en-US', {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+    }).format(workout.date);
+    
+    // Collect all exercises from all sections
+    const allExercises: Exercise[] = [
+      ...workout.sections.warmUp.exercises,
+      ...workout.sections.mainWorkout.exercises,
+      ...workout.sections.coolDown.exercises
+    ].map(ex => ({
+      id: ex.id,
+      name: ex.name,
+      sets: ex.sets || 1,
+      reps: ex.repetitions || 1,
+      weight: ex.category === 'main-workout' ? `${ex.duration}s` : undefined,
+      isCompleted: false
+    }));
+    
+    return {
+      id: workout.id,
+      date: formattedDate,
+      title: workout.title,
+      duration: `${workout.totalDuration} min`,
+      calories: `${Math.floor(workout.totalDuration * 3.5)}`,
+      exercises: allExercises,
+      completed: false
+    };
+  });
+  
+  // State for tracking exercise completion
+  const [workouts, setWorkouts] = useState<WorkoutSession[]>(galleryWorkouts);
+  
+  // Handle toggling exercise completion
+  const handleToggleExercise = (workoutId: string, exerciseId: string) => {
+    setWorkouts(prev => prev.map(workout => 
+      workout.id === workoutId 
+        ? {
+            ...workout,
+            exercises: workout.exercises.map(exercise => 
+              exercise.id === exerciseId 
+                ? { ...exercise, isCompleted: !exercise.isCompleted }
+                : exercise
+            )
+          }
+        : workout
+    ));
+  };
+  
+  // Handle viewing workout details
+  const handleViewDetails = (workoutId: string) => {
+    router.push(`/workouts/${workoutId}`);
+  };
 
   // Filter chart data based on selected time range
   const filteredChartData = (() => {
@@ -331,8 +393,6 @@ export default function Dashboard() {
         return chartData.slice(-30);
     }
   })();
-
-  // Add new states for dashboard functionality
 
   // First check - Auth check
   useEffect(() => {
@@ -462,65 +522,59 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Today's Lift Section */}
+      {/* Workout Gallery Section */}
       <div className="mb-8">
-        <h3 className="text-xl font-bold mb-4">Today&apos;s Lift</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Lift Card */}
-          <div className="md:col-span-2">
-            <DailyLiftCard 
-              id={todayWorkout.id}
-              title={todayWorkout.title}
-              description={todayWorkout.description}
-              imageUrl={todayWorkout.imageUrl}
-              videoUrl={todayWorkout.videoUrl}
-              duration={todayWorkout.totalDuration}
-              date={todayWorkout.date}
-              level={todayWorkout.level}
-            />
-          </div>
-          
-          {/* Methodology Highlight */}
-          <div>
-            <Card>
-              <CardHeader>
-                <CardTitle>MYFC Methodology</CardTitle>
-                <CardDescription>
-                  Understanding the science behind your facial fitness routine
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <p className="text-sm">
-                  The My Face Coach methodology is a comprehensive, science-based approach that mirrors traditional body fitness principles. 
-                  Designed to help you achieve a more youthful, lifted, and defined appearance.
-                </p>
-                
-                <h3 className="font-medium text-sm mt-4">Today&apos;s Focus</h3>
-                {todayWorkout.isTexasCardioDay ? (
-                  <div className="bg-blue-50 p-3 rounded-md">
-                    <h4 className="font-medium text-sm">Texas Cardio Day</h4>
-                    <p className="text-xs mt-1">
-                      Today focuses on massage techniques to boost circulation and give your facial muscles a break from lifting.
-                    </p>
-                  </div>
-                ) : (
-                  <div className="bg-green-50 p-3 rounded-md">
-                    <h4 className="font-medium text-sm">Full Facial Workout</h4>
-                    <p className="text-xs mt-1">
-                      Today&apos;s lift includes all three steps: warm-up, lifts, and cool-down for a complete facial fitness routine.
-                    </p>
-                  </div>
-                )}
-                
-                <Link href="/methodology">
-                  <Button variant="outline" className="w-full mt-2 text-xs" size="sm">
-                    Learn More <ArrowRight className="ml-1 h-3 w-3" />
-                  </Button>
-                </Link>
-              </CardContent>
-            </Card>
-          </div>
+        <h3 className="text-xl font-bold mb-4">Your Workout Plan</h3>
+        <div className="grid grid-cols-1 gap-6">
+          <WorkoutGallery
+            workouts={workouts}
+            onToggleExercise={handleToggleExercise}
+            onViewDetails={handleViewDetails}
+            title="Weekly Workout Plan"
+            description="Track your facial fitness progress throughout the week"
+          />
         </div>
+      </div>
+
+      {/* Methodology Highlight */}
+      <div className="mb-8">
+        <Card>
+          <CardHeader>
+            <CardTitle>MYFC Methodology</CardTitle>
+            <CardDescription>
+              Understanding the science behind your facial fitness routine
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-sm">
+              The My Face Coach methodology is a comprehensive, science-based approach that mirrors traditional body fitness principles. 
+              Designed to help you achieve a more youthful, lifted, and defined appearance.
+            </p>
+            
+            <h3 className="font-medium text-sm mt-4">Today&apos;s Focus</h3>
+            {todayWorkout.isTexasCardioDay ? (
+              <div className="bg-blue-50 p-3 rounded-md">
+                <h4 className="font-medium text-sm">Texas Cardio Day</h4>
+                <p className="text-xs mt-1">
+                  Today focuses on massage techniques to boost circulation and give your facial muscles a break from lifting.
+                </p>
+              </div>
+            ) : (
+              <div className="bg-green-50 p-3 rounded-md">
+                <h4 className="font-medium text-sm">Full Facial Workout</h4>
+                <p className="text-xs mt-1">
+                  Today&apos;s lift includes all three steps: warm-up, lifts, and cool-down for a complete facial fitness routine.
+                </p>
+              </div>
+            )}
+            
+            <Link href="/methodology">
+              <Button variant="outline" className="w-full mt-2 text-xs" size="sm">
+                Learn More <ArrowRight className="ml-1 h-3 w-3" />
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Dashboard Content */}
