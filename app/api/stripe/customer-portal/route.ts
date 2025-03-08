@@ -10,10 +10,8 @@ import Stripe from 'stripe';
  */
 export const POST = withCors(async function POST(request: NextRequest) {
   try {
-    // Initialize Stripe
-    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
-      apiVersion: '2023-10-16' as any, // Force type to avoid version mismatch issues
-    });
+    // Initialize Stripe with default API version
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '');
 
     // Get authentication token
     let userId: string | null = null;

@@ -25,8 +25,8 @@ interface ExtendedSubscription extends Subscription {
 
 function LoadingSpinner() {
   return (
-    <div className="flex items-center justify-center min-h-[60vh]">
-      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+    <div className="flex justify-center items-center h-screen">
+      <div className="w-8 h-8 border-4 border-primary/30 border-t-primary rounded-full animate-spin"></div>
     </div>
   );
 }
@@ -34,41 +34,34 @@ function LoadingSpinner() {
 function ProfileContent() {
   const router = useRouter();
   const { user, isLoading: isAuthLoading } = useAuth();
-  const { subscription: baseSubscription, fetchSubscription } = useSubscription();
+  const { subscription: baseSubscription, isLoading: isSubLoading, fetchSubscription } = useSubscription();
   const subscription = baseSubscription as ExtendedSubscription | null;
   const [isCancelling, setIsCancelling] = useState(false);
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
-  const [isReactivating, setIsReactivating] = useState(false);
   const [syncError, setSyncError] = useState<string | null>(null);
-
-  // Check for payment success
   const [paymentSuccess, setPaymentSuccess] = useState(false);
   const [paymentMessage, setPaymentMessage] = useState('');
 
   useEffect(() => {
-    // If not logged in, redirect to login
     if (!isAuthLoading && !user) {
       router.push('/login');
     }
   }, [user, isAuthLoading, router]);
 
   useEffect(() => {
-    // Check for payment success in URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const success = urlParams.get('success');
-    const message = urlParams.get('message');
-
+    // Check for payment success query params
+    const params = new URLSearchParams(window.location.search);
+    const success = params.get('success');
+    const message = params.get('message');
+    
     if (success === 'true' && message) {
       setPaymentSuccess(true);
       setPaymentMessage(decodeURIComponent(message));
       
-      // Remove query parameters from URL
+      // Remove query params from URL
       window.history.replaceState({}, document.title, window.location.pathname);
-      
-      // Refresh subscription data
-      fetchSubscription();
     }
-  }, [fetchSubscription]);
+  }, []);
 
   const handleCancelSubscription = async () => {
     setIsCancelling(true);
@@ -109,47 +102,6 @@ function ProfileContent() {
       });
     } finally {
       setIsCancelling(false);
-    }
-  };
-
-  const handleReactivateSubscription = async () => {
-    setIsReactivating(true);
-    try {
-      // Get the current session
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session) {
-        throw new Error('No active session found');
-      }
-      
-      const response = await fetch('/api/subscription/reactivate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`,
-        },
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to reactivate subscription');
-      }
-
-      toast({
-        title: "Success",
-        description: "Subscription reactivated successfully",
-      });
-      fetchSubscription();
-    } catch (error) {
-      console.error('Error reactivating subscription:', error);
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : 'Failed to reactivate subscription',
-        variant: "destructive",
-      });
-    } finally {
-      setIsReactivating(false);
     }
   };
 
