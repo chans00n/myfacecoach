@@ -16,7 +16,7 @@ import { useTrialStatus } from '@/hooks/useTrialStatus';
 
 function ProfileContent() {
   const { user } = useAuth();
-  const { subscription, isLoading: isLoadingSubscription, syncWithStripe, fetchSubscription } = useSubscription();
+  const { subscription, isLoading: isLoadingSubscription, checkWithStripe, fetchSubscription } = useSubscription();
   const router = useRouter();
   const searchParams = useSearchParams();
   const paymentStatus = searchParams.get('payment');
@@ -33,18 +33,18 @@ function ProfileContent() {
     }
   }, [paymentStatus]);
 
-  // Add error handling for subscription sync
+  // Add error handling for subscription check
   useEffect(() => {
     if (subscription?.stripe_subscription_id) {
       try {
-        syncWithStripe(subscription.stripe_subscription_id);
-        console.log('Subscription synced with Stripe successfully');
+        checkWithStripe(subscription.stripe_subscription_id);
+        console.log('Subscription checked with Stripe successfully');
       } catch (err: unknown) {
-        console.error('Error syncing with Stripe:', err);
+        console.error('Error checking with Stripe:', err);
         setError('Unable to load subscription details');
       }
     }
-  }, [syncWithStripe, subscription?.stripe_subscription_id]);
+  }, [checkWithStripe, subscription?.stripe_subscription_id]);
 
   // Add loading timeout with auto-refresh
   useEffect(() => {
@@ -96,7 +96,7 @@ function ProfileContent() {
     
     setIsCancelling(true);
     try {
-      const response = await fetch('/api/stripe/cancel', {
+      const response = await fetch('/api/subscription/cancel', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -119,7 +119,7 @@ function ProfileContent() {
     if (!subscription?.stripe_subscription_id) return;
     
     try {
-      const response = await fetch('/api/stripe/reactivate', {
+      const response = await fetch('/api/subscription/reactivate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -259,24 +259,23 @@ function ProfileContent() {
             <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full">
               <h3 className="text-xl font-semibold mb-4">Cancel Subscription?</h3>
               <p className="text-gray-600 dark:text-gray-300 mb-6">
-                You&apos;ll continue to have access until the end of your billing period on {new Date(subscription?.current_period_end || '').toLocaleDateString()}. No refunds are provided for cancellations.
+                You'll continue to have access until the end of your billing period on {new Date(subscription?.current_period_end || '').toLocaleDateString()}. No refunds are provided for cancellations.
               </p>
               <div className="flex gap-4 justify-end">
                 <button
                   onClick={() => setIsCancelModalOpen(false)}
-                  className="px-4 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
-                  disabled={isCancelling}
+                  className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg"
                 >
                   Keep Subscription
                 </button>
                 <button
                   onClick={handleCancelSubscription}
-                  className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg flex items-center gap-2"
+                  className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg flex items-center"
                   disabled={isCancelling}
                 >
                   {isCancelling ? (
                     <>
-                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
                       Canceling...
                     </>
                   ) : (
