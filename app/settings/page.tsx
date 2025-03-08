@@ -3,7 +3,6 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
-import { useTheme } from 'next-themes';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -23,82 +22,12 @@ function LoadingSpinner() {
 function SettingsContent() {
   const { user, supabase } = useAuth();
   const router = useRouter();
-  const { theme, setTheme } = useTheme();
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [preferences, setPreferences] = useState({
     email_notifications: true,
-    dark_mode: false,
     language: 'english'
   });
-
-  // Effect to sync theme with preferences when component mounts
-  useEffect(() => {
-    if (preferences.dark_mode) {
-      setTheme('dark');
-    } else {
-      setTheme('light');
-    }
-  }, [preferences.dark_mode, setTheme]);
-
-  // Effect to sync preferences with theme when theme changes externally
-  useEffect(() => {
-    if (theme === 'dark' && !preferences.dark_mode) {
-      setPreferences(prev => ({ ...prev, dark_mode: true }));
-    } else if (theme === 'light' && preferences.dark_mode) {
-      setPreferences(prev => ({ ...prev, dark_mode: false }));
-    }
-  }, [theme, preferences.dark_mode]);
-
-  // Effect to save theme preference to database when theme changes
-  useEffect(() => {
-    if (user && theme && (
-      (theme === 'dark' && !preferences.dark_mode) || 
-      (theme === 'light' && preferences.dark_mode)
-    )) {
-      const newDarkMode = theme === 'dark';
-      setPreferences(prev => ({ ...prev, dark_mode: newDarkMode }));
-      
-      // Save to localStorage as a fallback
-      try {
-        localStorage.setItem('theme_preference', theme);
-      } catch (e) {
-        console.error('Failed to save theme to localStorage:', e);
-      }
-      
-      // Save to database without full form submission
-      const saveThemePreference = async () => {
-        try {
-          // Only attempt to save to Supabase if we have a valid user
-          if (user?.id) {
-            const { error } = await supabase
-              .from('user_preferences')
-              .upsert({
-                user_id: user.id,
-                dark_mode: newDarkMode,
-                // Keep existing preferences for other fields
-                email_notifications: preferences.email_notifications,
-                language: preferences.language,
-                updated_at: new Date().toISOString()
-              });
-              
-            if (error) {
-              console.error('Supabase error saving theme preference:', error);
-            }
-          }
-        } catch (error) {
-          console.error('Error saving theme preference:', error);
-        }
-      };
-      
-      // Debounce the save operation to prevent too many API calls
-      const timeoutId = setTimeout(() => {
-        saveThemePreference();
-      }, 1000);
-      
-      return () => clearTimeout(timeoutId);
-    }
-  }, [theme, user, preferences, supabase]);
 
   useEffect(() => {
     if (!user) {
@@ -108,20 +37,6 @@ function SettingsContent() {
 
     const fetchPreferences = async () => {
       try {
-        // First check localStorage for theme preference
-        try {
-          const savedTheme = localStorage.getItem('theme_preference');
-          if (savedTheme) {
-            setTheme(savedTheme);
-            setPreferences(prev => ({ 
-              ...prev, 
-              dark_mode: savedTheme === 'dark' 
-            }));
-          }
-        } catch (e) {
-          console.error('Failed to read theme from localStorage:', e);
-        }
-
         // Then try to get from Supabase
         const { data, error } = await supabase
           .from('user_preferences')
@@ -135,15 +50,10 @@ function SettingsContent() {
         }
 
         if (data) {
-          const darkMode = data.dark_mode ?? false;
           setPreferences({
             email_notifications: data.email_notifications ?? true,
-            dark_mode: darkMode,
             language: data.language ?? 'english'
           });
-          
-          // Set theme based on stored preference
-          setTheme(darkMode ? 'dark' : 'light');
         }
       } catch (error) {
         console.error('Error fetching preferences:', error);
@@ -153,24 +63,29 @@ function SettingsContent() {
     };
 
     fetchPreferences();
-  }, [user, router, supabase, setTheme]);
-
-  const handleDarkModeToggle = (checked: boolean) => {
-    setPreferences({...preferences, dark_mode: checked});
-    setTheme(checked ? 'dark' : 'light');
-  };
+  }, [user, router, supabase]);
 
   const handleSavePreferences = async () => {
     if (!user) return;
 
     try {
       setIsSaving(true);
+      
+      // Get the current preferences first to preserve dark_mode setting
+      const { data: currentPrefs } = await supabase
+        .from('user_preferences')
+        .select('dark_mode')
+        .eq('user_id', user.id)
+        .single();
+      
+      const dark_mode = currentPrefs?.dark_mode || false;
+      
       const { error } = await supabase
         .from('user_preferences')
         .upsert({
           user_id: user.id,
           email_notifications: preferences.email_notifications,
-          dark_mode: preferences.dark_mode,
+          dark_mode, // Keep existing dark_mode value
           language: preferences.language,
           updated_at: new Date().toISOString()
         });
@@ -215,18 +130,6 @@ function SettingsContent() {
               <CardDescription>Manage your general application preferences.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <Label htmlFor="dark-mode">Dark Mode</Label>
-                  <p className="text-sm text-muted-foreground">Enable dark mode for the application</p>
-                </div>
-                <Switch 
-                  id="dark-mode" 
-                  checked={preferences.dark_mode}
-                  onCheckedChange={handleDarkModeToggle}
-                />
-              </div>
-              
               <div className="space-y-2">
                 <Label htmlFor="language">Language</Label>
                 <select 
@@ -248,9 +151,7 @@ function SettingsContent() {
                     <div className="w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
                     <span>Saving...</span>
                   </div>
-                ) : (
-                  'Save Changes'
-                )}
+                ) : 'Save Changes'}
               </Button>
             </CardFooter>
           </Card>
