@@ -119,7 +119,7 @@ export function SiteHeader({ className }: React.HTMLAttributes<HTMLElement>) {
               <Link href="/dashboard/profile">Profile</Link>
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
-              <Link href="/dashboard/profile?tab=general">Settings</Link>
+              <Link href="/dashboard/profile?tab=account">Settings</Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => signOut()}>

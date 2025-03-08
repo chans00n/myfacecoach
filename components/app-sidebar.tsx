@@ -68,7 +68,7 @@ const data = {
     },
     {
       title: "Settings",
-      url: "/dashboard/profile?tab=general",
+      url: "/dashboard/profile?tab=account",
       icon: Settings2,
       items: [],
     },

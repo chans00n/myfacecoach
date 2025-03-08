@@ -81,7 +81,7 @@ function ProfileContent() {
     const params = new URLSearchParams(window.location.search);
     const tab = params.get('tab');
     
-    if (tab && ['subscription', 'account', 'general', 'notifications'].includes(tab)) {
+    if (tab && ['subscription', 'account', 'notifications'].includes(tab)) {
       // Set the active tab based on the query parameter
       const tabsElement = document.querySelector(`[data-state="active"][data-orientation="horizontal"][role="tablist"]`);
       if (tabsElement) {
@@ -349,7 +349,6 @@ function ProfileContent() {
         <TabsList className="mb-4">
           <TabsTrigger value="subscription">Subscription</TabsTrigger>
           <TabsTrigger value="account">Account</TabsTrigger>
-          <TabsTrigger value="general">General</TabsTrigger>
           <TabsTrigger value="notifications">Notifications</TabsTrigger>
         </TabsList>
         
@@ -452,58 +451,43 @@ function ProfileContent() {
           <Card>
             <CardHeader>
               <CardTitle>Account Information</CardTitle>
-              <CardDescription>Manage your personal account details</CardDescription>
+              <CardDescription>Manage your personal account details and preferences</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4 mb-6">
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input id="email" value={user?.email || ''} disabled />
-                  <p className="text-sm text-muted-foreground">Your email address cannot be changed</p>
+              <div className="space-y-6">
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Email</Label>
+                    <Input id="email" value={user?.email || ''} disabled />
+                    <p className="text-sm text-muted-foreground">Your email address cannot be changed</p>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="user-id">User ID</Label>
+                    <Input id="user-id" value={user?.id || ''} disabled />
+                    <p className="text-sm text-muted-foreground">Your unique user identifier</p>
+                  </div>
                 </div>
                 
+                <Separator className="my-6" />
+                
                 <div className="space-y-2">
-                  <Label htmlFor="user-id">User ID</Label>
-                  <Input id="user-id" value={user?.id || ''} disabled />
-                  <p className="text-sm text-muted-foreground">Your unique user identifier</p>
+                  <Label htmlFor="language">Language</Label>
+                  <Select 
+                    value={preferences.language}
+                    onValueChange={(value) => setPreferences({...preferences, language: value})}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a language" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="english">English</SelectItem>
+                      <SelectItem value="spanish">Spanish</SelectItem>
+                      <SelectItem value="french">French</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-sm text-muted-foreground">Choose your preferred language for the application</p>
                 </div>
-              </div>
-              
-              <Separator className="my-6" />
-              
-              <AccountManagement />
-            </CardContent>
-            <CardFooter>
-              <Button variant="outline" onClick={() => router.push('/reset-password')}>
-                Reset Password
-              </Button>
-            </CardFooter>
-          </Card>
-        </TabsContent>
-        
-        <TabsContent value="general">
-          <Card>
-            <CardHeader>
-              <CardTitle>General Settings</CardTitle>
-              <CardDescription>Manage your general application preferences.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-2">
-                <Label htmlFor="language">Language</Label>
-                <Select 
-                  value={preferences.language}
-                  onValueChange={(value) => setPreferences({...preferences, language: value})}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a language" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="english">English</SelectItem>
-                    <SelectItem value="spanish">Spanish</SelectItem>
-                    <SelectItem value="french">French</SelectItem>
-                  </SelectContent>
-                </Select>
-                <p className="text-sm text-muted-foreground">Choose your preferred language for the application</p>
               </div>
             </CardContent>
             <CardFooter>

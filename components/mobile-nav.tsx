@@ -29,7 +29,7 @@ export function MobileNav({ className }: MobileNavProps) {
     },
     {
       title: "Settings",
-      url: "/dashboard/profile?tab=general",
+      url: "/dashboard/profile?tab=account",
     },
   ]
 
