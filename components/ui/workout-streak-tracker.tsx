@@ -76,7 +76,7 @@ export function LiftStreakTracker({
     });
   }, [liftDates]);
 
-  // Split the days into rows (7 rows of 26 days each)
+  // Split the days into rows (7 rows x 26 columns = 182 days)
   const rows = [];
   for (let i = 0; i < 7; i++) {
     rows.push(streakData.lastSixMonths.slice(i * 26, (i + 1) * 26));
@@ -93,33 +93,29 @@ export function LiftStreakTracker({
         {/* Streak visualization */}
         <div className="mb-4">
           <div className="w-full">
-            <div className="grid auto-rows-fr gap-[0.1rem] xs:gap-[0.15rem] sm:gap-[0.2rem] md:gap-[0.25rem]">
-              {rows.map((row, rowIndex) => (
-                <div key={`row-${rowIndex}`} className="flex justify-between w-full">
-                  {row.map((day, dayIndex) => (
-                    <TooltipProvider key={`day-${rowIndex}-${dayIndex}`}>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <div 
-                            className={cn(
-                              "aspect-square w-[0.3rem] h-[0.3rem] xs:w-[0.35rem] xs:h-[0.35rem] sm:w-[0.4rem] sm:h-[0.4rem] md:w-[0.45rem] md:h-[0.45rem] lg:w-[0.5rem] lg:h-[0.5rem] rounded-sm",
-                              day.completed 
-                                ? "bg-primary hover:bg-primary/90" 
-                                : "bg-muted-foreground/20 hover:bg-muted-foreground/30 dark:bg-muted-foreground/30 dark:hover:bg-muted-foreground/40",
-                              "transition-colors duration-200 cursor-pointer"
-                            )}
-                          />
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p className="font-medium">{format(day.date, "MMM d, yyyy")}</p>
-                          <p className={day.completed ? "text-primary" : "text-muted-foreground"}>
-                            {day.completed ? "Lift completed ✓" : "No lift"}
-                          </p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  ))}
-                </div>
+            <div className="grid grid-cols-26 grid-rows-7 gap-x-[2px] gap-y-[2px] xs:gap-x-[3px] xs:gap-y-[3px] sm:gap-x-[4px] sm:gap-y-[4px] md:gap-x-[5px] md:gap-y-[5px]">
+              {streakData.lastSixMonths.map((day, index) => (
+                <TooltipProvider key={`day-${index}`}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div 
+                        className={cn(
+                          "aspect-square w-full rounded-sm",
+                          day.completed 
+                            ? "bg-primary hover:bg-primary/90" 
+                            : "bg-muted-foreground/20 hover:bg-muted-foreground/30 dark:bg-muted-foreground/30 dark:hover:bg-muted-foreground/40",
+                          "transition-colors duration-200 cursor-pointer"
+                        )}
+                      />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p className="font-medium">{format(day.date, "MMM d, yyyy")}</p>
+                      <p className={day.completed ? "text-primary" : "text-muted-foreground"}>
+                        {day.completed ? "Lift completed ✓" : "No lift"}
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               ))}
             </div>
           </div>
