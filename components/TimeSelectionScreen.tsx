@@ -1,9 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { SunIcon, MoonIcon } from 'lucide-react';
 
 interface TimeSelectionScreenProps {
@@ -16,6 +15,9 @@ export function TimeSelectionScreen({ onComplete }: TimeSelectionScreenProps) {
   const [hours, setHours] = useState<string>('09');
   const [minutes, setMinutes] = useState<string>('00');
   const [amPm, setAmPm] = useState<'AM' | 'PM'>('AM');
+  
+  const hourPickerRef = useRef<HTMLDivElement>(null);
+  const minutePickerRef = useRef<HTMLDivElement>(null);
   
   // Set default time based on selected period
   useEffect(() => {
@@ -48,10 +50,8 @@ export function TimeSelectionScreen({ onComplete }: TimeSelectionScreenProps) {
     return hour < 10 ? `0${hour}` : `${hour}`;
   });
 
-  // Generate minute options (00-59)
-  const minuteOptions = Array.from({ length: 60 }, (_, i) => {
-    return i < 10 ? `0${i}` : `${i}`;
-  });
+  // Common minute options
+  const minuteOptions = ['00', '15', '30', '45'];
 
   return (
     <AnimatePresence mode="wait">
@@ -63,31 +63,11 @@ export function TimeSelectionScreen({ onComplete }: TimeSelectionScreenProps) {
           transition={{ duration: 0.5, ease: 'easeInOut' }}
           className="fixed inset-0 z-50 flex flex-col items-center justify-start bg-background p-6 pt-16 overflow-y-auto"
         >
-          {/* Notification-like header */}
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="w-full max-w-md mb-10 bg-muted/50 rounded-xl p-4 border border-border"
-          >
-            <div className="flex items-center gap-3">
-              <div className="bg-black text-white w-10 h-10 rounded-lg flex items-center justify-center font-bold">
-                S.
-              </div>
-              <div className="text-lg font-semibold text-muted-foreground">STOIC</div>
-              <div className="ml-auto text-sm text-muted-foreground">now</div>
-            </div>
-            <div className="mt-3">
-              <p className="text-xl font-bold">Let's start your day 🌻</p>
-              <p className="text-muted-foreground">Your facial fitness routine is waiting for you.</p>
-            </div>
-          </motion.div>
-          
           {/* Main content */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
+            transition={{ duration: 0.5 }}
             className="w-full max-w-md"
           >
             <h1 className="text-3xl md:text-4xl font-bold text-center mb-4 text-foreground">
@@ -139,17 +119,17 @@ export function TimeSelectionScreen({ onComplete }: TimeSelectionScreenProps) {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.5, delay: 0.3 }}
-              className="bg-muted/50 rounded-xl p-4 mb-8"
+              className="bg-muted/50 rounded-xl p-6 mb-8"
             >
               <div className="flex justify-center items-center">
                 {/* Hours */}
                 <div className="w-1/3 text-center">
-                  <div className="relative h-40 overflow-hidden">
-                    <div className="absolute inset-0 flex flex-col items-center justify-center">
-                      {hourOptions.map((hour, index) => (
+                  <div className="relative h-40 overflow-y-auto scrollbar-hide" ref={hourPickerRef}>
+                    <div className="flex flex-col items-center py-16">
+                      {hourOptions.map((hour) => (
                         <div 
                           key={hour}
-                          className={`py-2 ${hours === hour ? 'text-2xl font-bold' : 'text-muted-foreground text-opacity-50'}`}
+                          className={`py-2 cursor-pointer transition-colors ${hours === hour ? 'text-2xl font-bold' : 'text-muted-foreground'}`}
                           onClick={() => setHours(hour)}
                         >
                           {hour}
@@ -164,12 +144,12 @@ export function TimeSelectionScreen({ onComplete }: TimeSelectionScreenProps) {
                 
                 {/* Minutes */}
                 <div className="w-1/3 text-center">
-                  <div className="relative h-40 overflow-hidden">
-                    <div className="absolute inset-0 flex flex-col items-center justify-center">
-                      {['00', '15', '30', '45', '59'].map((minute) => (
+                  <div className="relative h-40 overflow-y-auto scrollbar-hide" ref={minutePickerRef}>
+                    <div className="flex flex-col items-center py-16">
+                      {minuteOptions.map((minute) => (
                         <div 
                           key={minute}
-                          className={`py-2 ${minutes === minute ? 'text-2xl font-bold' : 'text-muted-foreground text-opacity-50'}`}
+                          className={`py-2 cursor-pointer transition-colors ${minutes === minute ? 'text-2xl font-bold' : 'text-muted-foreground'}`}
                           onClick={() => setMinutes(minute)}
                         >
                           {minute}
@@ -181,28 +161,28 @@ export function TimeSelectionScreen({ onComplete }: TimeSelectionScreenProps) {
                 
                 {/* AM/PM */}
                 <div className="w-1/3 text-center">
-                  <div className="relative h-40 overflow-hidden">
-                    <div className="absolute inset-0 flex flex-col items-center justify-center">
-                      <div 
-                        className={`py-2 ${amPm === 'AM' ? 'text-2xl font-bold' : 'text-muted-foreground text-opacity-50'}`}
-                        onClick={() => setAmPm('AM')}
-                      >
-                        AM
-                      </div>
-                      <div 
-                        className={`py-2 ${amPm === 'PM' ? 'text-2xl font-bold' : 'text-muted-foreground text-opacity-50'}`}
-                        onClick={() => setAmPm('PM')}
-                      >
-                        PM
-                      </div>
+                  <div className="relative h-40 flex flex-col items-center justify-center">
+                    <div 
+                      className={`py-2 cursor-pointer transition-colors ${amPm === 'AM' ? 'text-2xl font-bold' : 'text-muted-foreground'}`}
+                      onClick={() => setAmPm('AM')}
+                    >
+                      AM
+                    </div>
+                    <div 
+                      className={`py-2 cursor-pointer transition-colors ${amPm === 'PM' ? 'text-2xl font-bold' : 'text-muted-foreground'}`}
+                      onClick={() => setAmPm('PM')}
+                    >
+                      PM
                     </div>
                   </div>
                 </div>
               </div>
               
               {/* Selected time highlight */}
-              <div className="relative">
-                <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-12 bg-muted rounded-md"></div>
+              <div className="relative mt-4 text-center">
+                <p className="text-lg font-semibold">
+                  Selected time: <span className="text-primary">{hours}:{minutes} {amPm}</span>
+                </p>
               </div>
             </motion.div>
             
