@@ -11,7 +11,7 @@ import { QuestionnaireScreen } from "@/components/QuestionnaireScreen";
 import { FacialAreaScreen } from "@/components/FacialAreaScreen";
 import { TimeSelectionScreen } from "@/components/TimeSelectionScreen";
 import { FinalLoadingScreen } from "@/components/FinalLoadingScreen";
-import { SignUpForm } from "@/components/signup-form";
+import { LoginForm } from "@/components/login-form";
 
 export default function LandingPage() {
   const { user } = useAuth();
@@ -131,7 +131,7 @@ export default function LandingPage() {
         <FinalLoadingScreen onComplete={handleFinalLoadingComplete} />
       )}
       
-      {/* Sign Up Form - only shown after all onboarding steps are complete */}
+      {/* Login/Sign Up Form - only shown after all onboarding steps are complete */}
       {loadingComplete && onboardingComplete && questionnaireComplete && facialAreaComplete && timeSelectionComplete && finalLoadingComplete && (
         <div className="grid min-h-svh lg:grid-cols-2">
           <div className="flex flex-col gap-4 p-6 md:p-10">
@@ -150,7 +150,7 @@ export default function LandingPage() {
                     />
                   )}
                 </div>
-                <SignUpForm />
+                <LoginForm defaultToSignUp={true} />
               </div>
             </div>
           </div>

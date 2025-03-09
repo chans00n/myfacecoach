@@ -9,11 +9,16 @@ import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Loader2 } from "lucide-react"
 
+interface LoginFormProps extends React.ComponentPropsWithoutRef<"form"> {
+  defaultToSignUp?: boolean;
+}
+
 export function LoginForm({
   className,
+  defaultToSignUp = false,
   ...props
-}: React.ComponentPropsWithoutRef<"form">) {
-  const [isSignUp, setIsSignUp] = useState(false);
+}: LoginFormProps) {
+  const [isSignUp, setIsSignUp] = useState(defaultToSignUp);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
