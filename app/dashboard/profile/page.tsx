@@ -763,19 +763,18 @@ function ProfileContent() {
                       <Label htmlFor="avatar">Profile Picture</Label>
                       <p className="text-sm text-muted-foreground mb-2">Upload a new profile picture</p>
                     </div>
-                    <div className="flex flex-col sm:flex-row gap-2">
+                    <div className="flex flex-col gap-2">
                       <Input 
                         id="avatar" 
                         type="file" 
                         accept="image/*"
                         onChange={handleAvatarChange}
-                        className="max-w-xs"
+                        className="w-full"
                       />
                       <Button 
                         onClick={handleAvatarUpload} 
                         disabled={!avatarFile || isUploadingAvatar}
-                        size="sm"
-                        className="w-full sm:w-auto"
+                        className="w-full flex items-center justify-center"
                       >
                         {isUploadingAvatar ? (
                           <>
@@ -793,17 +792,17 @@ function ProfileContent() {
                 {/* Name */}
                 <div className="space-y-2">
                   <Label htmlFor="name">Name</Label>
-                  <div className="flex gap-2">
+                  <div className="flex flex-col gap-2">
                     <Input 
                       id="name" 
                       value={profileData.name} 
                       onChange={(e) => setProfileData({...profileData, name: e.target.value})}
-                      className="flex-1"
+                      className="w-full"
                     />
                     <Button 
                       onClick={handleUpdateName} 
                       disabled={isUpdatingProfile || !profileData.name}
-                      className="w-full sm:w-auto"
+                      className="w-full flex items-center justify-center"
                     >
                       {isUpdatingProfile ? 'Saving...' : 'Save'}
                     </Button>
@@ -814,13 +813,12 @@ function ProfileContent() {
                 {/* Email */}
                 <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>
-                  <div className="flex gap-2">
-                    <Input id="email" value={profileData.email} disabled className="flex-1" />
+                  <div className="flex flex-col gap-2">
+                    <Input id="email" value={profileData.email} disabled className="w-full" />
                     <Button 
                       onClick={() => setIsEmailChangeModalOpen(true)} 
                       variant="outline"
-                      size="sm"
-                      className="w-full sm:w-auto"
+                      className="w-full flex items-center justify-center"
                     >
                       Change
                     </Button>
@@ -868,7 +866,7 @@ function ProfileContent() {
               <Button 
                 onClick={handleSavePreferences} 
                 disabled={isSaving}
-                className="w-full sm:w-auto"
+                className="w-full flex items-center justify-center"
               >
                 {isSaving ? 'Saving...' : 'Save Changes'}
               </Button>
@@ -885,7 +883,7 @@ function ProfileContent() {
             </CardHeader>
             <CardContent className="pt-6">
               <div className="space-y-4">
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div className="flex flex-col gap-4">
                   <div>
                     <h3 className="font-medium">Delete Account</h3>
                     <p className="text-sm text-muted-foreground">
@@ -895,7 +893,7 @@ function ProfileContent() {
                   <Button 
                     variant="destructive" 
                     onClick={() => setIsDeleteModalOpen(true)}
-                    className="w-full sm:w-auto"
+                    className="w-full flex items-center justify-center"
                   >
                     Delete Account
                   </Button>
@@ -940,7 +938,7 @@ function ProfileContent() {
               <Button 
                 onClick={handleSavePreferences} 
                 disabled={isSaving}
-                className="w-full sm:w-auto"
+                className="w-full flex items-center justify-center"
               >
                 {isSaving ? 'Saving...' : 'Save Changes'}
               </Button>
