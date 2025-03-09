@@ -157,27 +157,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       if (authError) throw authError;
 
-      // Check if user was previously soft-deleted
-      const { data: profile } = await supabase
-        .from('users')
-        .select('is_deleted, deleted_at')
-        .eq('id', authData.user?.id)
-        .single();
-
-      if (profile?.is_deleted) {
-        // Reactivate the account
-        await supabase
-          .from('users')
-          .update({ 
-            is_deleted: false, 
-            deleted_at: null,
-            reactivated_at: new Date().toISOString() 
-          })
-          .eq('id', authData.user?.id);
-
-        // You could trigger a welcome back notification here
-      }
-
+      // No need to check for soft-deleted users since we're not using the users table
+      // Just return the auth data
       return authData;
     },
     signOut: async () => {
@@ -227,30 +208,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (error) throw error;
     },
     deleteAccount: async () => {
-      // First delete user data from any related tables
-      const { error: dataError } = await supabase
-        .from('users')
-        .delete()
-        .eq('id', user?.id);
+      // We'll use the API route to handle deletion instead of direct DB access
+      // This ensures all related data is properly cleaned up
+      const response = await fetch(`/api/user/delete?userId=${user?.id}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
       
-      if (dataError) throw dataError;
-
-      // Then delete the user's subscription if it exists
-      const { error: subscriptionError } = await supabase
-        .from('subscriptions')
-        .delete()
-        .eq('user_id', user?.id);
-
-      if (subscriptionError) throw subscriptionError;
-
-      // Finally delete the user's auth account
-      const { error: authError } = await supabase.auth.admin.deleteUser(
-        user?.id as string
-      );
-
-      if (authError) throw authError;
-
-      // Sign out after successful deletion
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to delete account');
+      }
+      
+      // Sign out the user after successful deletion
       await supabase.auth.signOut();
     },
     isSubscriber,
