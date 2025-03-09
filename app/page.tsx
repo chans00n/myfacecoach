@@ -9,6 +9,7 @@ import { useTheme } from "next-themes";
 import { LoadingScreen } from "@/components/LoadingScreen";
 import { OnboardingScreen } from "@/components/OnboardingScreen";
 import { QuestionnaireScreen } from "@/components/QuestionnaireScreen";
+import { FacialAreaScreen } from "@/components/FacialAreaScreen";
 
 export default function LandingPage() {
   const { user } = useAuth();
@@ -19,7 +20,9 @@ export default function LandingPage() {
   const [loadingComplete, setLoadingComplete] = useState(false);
   const [onboardingComplete, setOnboardingComplete] = useState(false);
   const [questionnaireComplete, setQuestionnaireComplete] = useState(false);
+  const [facialAreaComplete, setFacialAreaComplete] = useState(false);
   const [userPreferences, setUserPreferences] = useState<string[]>([]);
+  const [facialAreas, setFacialAreas] = useState<string[]>([]);
 
   // After mounting, we can access the theme
   useEffect(() => {
@@ -52,6 +55,15 @@ export default function LandingPage() {
     console.log("User preferences:", selectedOptions);
   };
 
+  // Handle facial area selection completion
+  const handleFacialAreaComplete = (selectedAreas: string[]) => {
+    setFacialAreas(selectedAreas);
+    setFacialAreaComplete(true);
+    
+    // Log the selected facial areas (can be used later for personalization)
+    console.log("Selected facial areas:", selectedAreas);
+  };
+
   useEffect(() => {
     if (user) {
       router.push('/dashboard');
@@ -78,8 +90,13 @@ export default function LandingPage() {
         <QuestionnaireScreen onComplete={handleQuestionnaireComplete} />
       )}
       
-      {/* Main Content - only shown after loading, onboarding, and questionnaire */}
-      {loadingComplete && onboardingComplete && questionnaireComplete && (
+      {/* Facial Area Screen - shown after questionnaire */}
+      {loadingComplete && onboardingComplete && questionnaireComplete && !facialAreaComplete && (
+        <FacialAreaScreen onComplete={handleFacialAreaComplete} />
+      )}
+      
+      {/* Main Content - only shown after all onboarding steps are complete */}
+      {loadingComplete && onboardingComplete && questionnaireComplete && facialAreaComplete && (
         <div className="grid min-h-svh lg:grid-cols-2">
           <div className="flex flex-col gap-4 p-6 md:p-10">
             <div className="flex flex-1 items-center justify-center">
