@@ -194,74 +194,22 @@ function ProfileContent() {
 
     const fetchProfileData = async () => {
       try {
-        // Initialize with user auth data first
+        // Use only user auth metadata - don't try to query the users table at all
         setProfileData({
-          name: user.user_metadata?.name || '',
+          name: user.user_metadata?.name || user.user_metadata?.full_name || '',
           email: user.email || '',
           avatarUrl: user.user_metadata?.avatar_url || ''
         });
         
-        // Then try to get additional data from users table if it exists
-        try {
-          // First check if the users table exists and what columns it has
-          const { data: tableInfo, error: tableError } = await supabase
-            .from('users')
-            .select('*')
-            .limit(1);
-          
-          if (tableError) {
-            console.log('Users table might not exist or is empty:', tableError.message);
-            return; // Continue with auth data only
-          }
-          
-          // Determine which columns to query based on what exists
-          const columnsToSelect = [];
-          const firstRow = tableInfo?.[0];
-          
-          if (firstRow) {
-            if ('full_name' in firstRow) columnsToSelect.push('full_name');
-            if ('name' in firstRow) columnsToSelect.push('name');
-            if ('avatar_url' in firstRow) columnsToSelect.push('avatar_url');
-            if ('profile_image' in firstRow) columnsToSelect.push('profile_image');
-          }
-          
-          if (columnsToSelect.length === 0) {
-            console.log('No relevant columns found in users table');
-            return; // Continue with auth data only
-          }
-          
-          // Query with the columns that actually exist
-          const { data, error } = await supabase
-            .from('users')
-            .select(columnsToSelect.join(', '))
-            .eq('id', user.id)
-            .single();
-
-          if (error) {
-            console.error('Error fetching profile data:', error);
-            // Don't return here, just continue with auth data
-          }
-
-          if (data) {
-            setProfileData(prev => ({
-              ...prev,
-              // Try different possible column names for the name
-              name: (data as any).full_name || (data as any).name || prev.name,
-              // Try different possible column names for the avatar
-              avatarUrl: (data as any).avatar_url || (data as any).profile_image || prev.avatarUrl
-            }));
-          }
-        } catch (error) {
-          console.error('Error fetching profile data:', error);
-          // Continue with auth data
-        }
+        console.log('Using auth metadata for profile:', user.user_metadata);
+        
       } catch (error) {
         console.error('Error in profile data initialization:', error);
       }
     };
 
     fetchProfileData();
-  }, [user, supabase]);
+  }, [user]);
 
   const handleCancelSubscription = async () => {
     setIsCancelling(true);
@@ -543,59 +491,6 @@ function ProfileContent() {
       
       if (metadataError) throw metadataError;
       
-      // Try to update users table
-      try {
-        // First check if the users table exists and what columns it has
-        const { data: tableInfo, error: tableError } = await supabase
-          .from('users')
-          .select('*')
-          .limit(1);
-        
-        if (tableError) {
-          console.log('Users table might not exist or is empty:', tableError.message);
-          return; // Continue with metadata avatar only
-        }
-        
-        // Determine which columns exist in the table
-        const firstRow = tableInfo?.[0];
-        if (!firstRow) {
-          console.log('Users table is empty');
-          return; // Continue with metadata avatar only
-        }
-        
-        // Create an upsert object with only the columns that exist
-        const upsertData: Record<string, any> = {
-          id: user.id,
-          updated_at: new Date().toISOString()
-        };
-        
-        // Add name field if it exists
-        if ('name' in firstRow) {
-          upsertData.name = profileData.name;
-        } else if ('full_name' in firstRow) {
-          upsertData.full_name = profileData.name;
-        }
-        
-        // Add avatar field if it exists
-        if ('avatar_url' in firstRow) {
-          upsertData.avatar_url = profileData.avatarUrl;
-        } else if ('profile_image' in firstRow) {
-          upsertData.profile_image = profileData.avatarUrl;
-        }
-        
-        const { error: dbError } = await supabase
-          .from('users')
-          .upsert(upsertData);
-        
-        if (dbError) {
-          console.error('Database update error:', dbError);
-          // Continue with metadata avatar
-        }
-      } catch (error) {
-        console.error('Error updating users table:', error);
-        // Continue with metadata avatar
-      }
-      
       if (isMounted.current) {
         toast({
           title: "Profile Updated",
@@ -671,7 +566,6 @@ function ProfileContent() {
     setProfileError(undefined);
     
     try {
-      // First, ensure the avatar is stored in user metadata which always works
       // Convert the file to a data URL
       const reader = new FileReader();
       
@@ -697,97 +591,6 @@ function ProfileContent() {
         ...prev,
         avatarUrl: dataUrl
       }));
-      
-      // Try to upload to storage as well (but don't fail if it doesn't work)
-      try {
-        // Upload file to storage
-        const fileExt = avatarFile.name.split('.').pop();
-        const fileName = `${user.id}-${Date.now()}.${fileExt}`;
-        const filePath = `avatars/${fileName}`;
-        
-        const { error: uploadError } = await supabase.storage
-          .from('user-avatars')
-          .upload(filePath, avatarFile);
-        
-        if (uploadError) {
-          console.error('Storage upload error:', uploadError);
-          // Continue with metadata avatar
-        } else {
-          // Get public URL
-          const { data: urlData } = supabase.storage
-            .from('user-avatars')
-            .getPublicUrl(filePath);
-          
-          const avatarUrl = urlData.publicUrl;
-          
-          // Update user metadata with the storage URL
-          await supabase.auth.updateUser({
-            data: { avatar_url: avatarUrl }
-          });
-          
-          // Update local state
-          setProfileData(prev => ({
-            ...prev,
-            avatarUrl
-          }));
-        }
-        
-        // Try to update users table
-        try {
-          // First check if the users table exists and what columns it has
-          const { data: tableInfo, error: tableError } = await supabase
-            .from('users')
-            .select('*')
-            .limit(1);
-          
-          if (tableError) {
-            console.log('Users table might not exist or is empty:', tableError.message);
-            return; // Continue with metadata avatar only
-          }
-          
-          // Determine which columns exist in the table
-          const firstRow = tableInfo?.[0];
-          if (!firstRow) {
-            console.log('Users table is empty');
-            return; // Continue with metadata avatar only
-          }
-          
-          // Create an upsert object with only the columns that exist
-          const upsertData: Record<string, any> = {
-            id: user.id,
-            updated_at: new Date().toISOString()
-          };
-          
-          // Add name field if it exists
-          if ('name' in firstRow) {
-            upsertData.name = profileData.name;
-          } else if ('full_name' in firstRow) {
-            upsertData.full_name = profileData.name;
-          }
-          
-          // Add avatar field if it exists
-          if ('avatar_url' in firstRow) {
-            upsertData.avatar_url = profileData.avatarUrl;
-          } else if ('profile_image' in firstRow) {
-            upsertData.profile_image = profileData.avatarUrl;
-          }
-          
-          const { error: dbError } = await supabase
-            .from('users')
-            .upsert(upsertData);
-          
-          if (dbError) {
-            console.error('Database update error:', dbError);
-            // Continue with metadata avatar
-          }
-        } catch (error) {
-          console.error('Error updating users table:', error);
-          // Continue with metadata avatar
-        }
-      } catch (error) {
-        console.error('Error in storage upload flow:', error);
-        // Continue with metadata avatar
-      }
       
       setAvatarFile(null);
       
