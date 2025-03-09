@@ -24,8 +24,17 @@ export function StripeBuyButton({ buyButtonId, publishableKey, className }: Stri
     }
 
     const handleMessage = (event: MessageEvent) => {
-      // Accept messages from any Stripe domain
-      if (!event.origin.match(/^https:\/\/[^.]+\.stripe\.com$/)) {
+      // Accept messages from Stripe domains or our own app
+      const validOrigins = [
+        /^https:\/\/[^.]+\.stripe\.com$/,
+        new RegExp(`^${window.location.origin}$`)
+      ];
+      
+      const isValidOrigin = validOrigins.some(pattern => 
+        typeof event.origin === 'string' && pattern.test(event.origin)
+      );
+      
+      if (!isValidOrigin) {
         return;
       }
       
