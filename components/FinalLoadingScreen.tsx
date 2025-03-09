@@ -63,14 +63,6 @@ export function FinalLoadingScreen({
     setTimeout(onComplete, 500);
   };
 
-  // Auto-complete after all steps are done
-  useEffect(() => {
-    if (allComplete) {
-      const timer = setTimeout(handleComplete, 1500);
-      return () => clearTimeout(timer);
-    }
-  }, [allComplete]);
-
   return (
     <AnimatePresence mode="wait">
       {isVisible && (

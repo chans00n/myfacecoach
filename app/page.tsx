@@ -1,6 +1,5 @@
 "use client";
 
-import { LoginForm } from "@/components/login-form";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEffect, useState } from "react";
@@ -12,6 +11,7 @@ import { QuestionnaireScreen } from "@/components/QuestionnaireScreen";
 import { FacialAreaScreen } from "@/components/FacialAreaScreen";
 import { TimeSelectionScreen } from "@/components/TimeSelectionScreen";
 import { FinalLoadingScreen } from "@/components/FinalLoadingScreen";
+import { SignUpForm } from "@/components/signup-form";
 
 export default function LandingPage() {
   const { user } = useAuth();
@@ -131,12 +131,12 @@ export default function LandingPage() {
         <FinalLoadingScreen onComplete={handleFinalLoadingComplete} />
       )}
       
-      {/* Main Content - only shown after all onboarding steps are complete */}
+      {/* Sign Up Form - only shown after all onboarding steps are complete */}
       {loadingComplete && onboardingComplete && questionnaireComplete && facialAreaComplete && timeSelectionComplete && finalLoadingComplete && (
         <div className="grid min-h-svh lg:grid-cols-2">
           <div className="flex flex-col gap-4 p-6 md:p-10">
             <div className="flex flex-1 items-center justify-center">
-              <div className="w-full max-w-xs">
+              <div className="w-full max-w-md">
                 <div className="flex justify-center mb-8">
                   {mounted && (
                     <Image
@@ -150,7 +150,7 @@ export default function LandingPage() {
                     />
                   )}
                 </div>
-                <LoginForm />
+                <SignUpForm />
               </div>
             </div>
           </div>
