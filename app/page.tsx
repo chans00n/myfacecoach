@@ -36,8 +36,8 @@ export default function LandingPage() {
                     ? "/MYFC_logo_white.png" 
                     : "/MYFC_logo.png"}
                   alt="MYFC Logo"
-                  width={150}
-                  height={150}
+                  width={100}
+                  height={100}
                   priority
                 />
               )}
@@ -48,7 +48,7 @@ export default function LandingPage() {
       </div>
       <div className="relative hidden bg-muted lg:block">
         <Image
-          src="/images/mathilde-langevin-NWEKGZ5B2q0-unsplash.jpg"
+          src="/images/zulmaury-saavedra-kXC0dbqtRe4-unsplash.jpg"
           alt="Login background"
           fill
           className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.2] dark:grayscale"
