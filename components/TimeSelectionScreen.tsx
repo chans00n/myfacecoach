@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { Clock } from 'lucide-react';
+import { Clock, X } from 'lucide-react';
 import { 
   Select,
   SelectContent,
@@ -42,6 +42,12 @@ export function TimeSelectionScreen({ onComplete }: TimeSelectionScreenProps) {
     setTimeout(() => onComplete({ time: timeString }), 500);
   };
 
+  const handleSkip = () => {
+    setIsVisible(false);
+    // Pass default time if skipped
+    setTimeout(() => onComplete({ time: "09:00 AM" }), 500);
+  };
+
   return (
     <AnimatePresence mode="wait">
       {isVisible && (
@@ -50,8 +56,17 @@ export function TimeSelectionScreen({ onComplete }: TimeSelectionScreenProps) {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.5, ease: 'easeInOut' }}
-          className="fixed inset-0 z-50 flex flex-col items-center justify-start bg-background p-6 pt-16 overflow-y-auto"
+          className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-background p-6 overflow-y-auto"
         >
+          {/* Skip button */}
+          <button 
+            onClick={handleSkip}
+            className="absolute right-6 top-6 text-muted-foreground hover:text-foreground transition-colors"
+            aria-label="Skip"
+          >
+            <span className="text-sm font-medium">Skip</span>
+          </button>
+          
           {/* Main content */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
