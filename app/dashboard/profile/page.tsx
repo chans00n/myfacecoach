@@ -693,11 +693,11 @@ function ProfileContent() {
                     </div>
                   </div>
                   
-                  <div className="flex flex-col sm:flex-row gap-3 mt-6">
-                    <ButtonGroup>
+                  <div className="mt-6">
+                    <ButtonGroup spacing="2">
                       <Button 
                         variant="outline" 
-                        className="flex items-center gap-2"
+                        className="flex items-center justify-center gap-2"
                         onClick={openStripeCustomerPortal}
                       >
                         <FaCreditCard className="text-muted-foreground" />
@@ -706,7 +706,7 @@ function ProfileContent() {
                       
                       <Button 
                         variant="outline" 
-                        className="flex items-center gap-2"
+                        className="flex items-center justify-center gap-2"
                         onClick={handleCheckStatus}
                         disabled={isCheckingStatus}
                       >
@@ -717,6 +717,7 @@ function ProfileContent() {
                       {subscription.status === 'active' && !subscription.cancel_at_period_end && (
                         <Button 
                           variant="destructive" 
+                          className="flex items-center justify-center"
                           onClick={() => setIsCancelModalOpen(true)}
                           disabled={isCancelling}
                         >
@@ -980,6 +981,7 @@ function ProfileContent() {
                 variant="outline"
                 onClick={() => setIsDeleteModalOpen(false)}
                 disabled={isDeleting}
+                className="flex items-center justify-center"
               >
                 Cancel
               </Button>
@@ -987,6 +989,7 @@ function ProfileContent() {
                 variant="destructive"
                 onClick={handleDeleteAccount}
                 disabled={isDeleting || Boolean(subscription?.status === 'active')}
+                className="flex items-center justify-center"
               >
                 {isDeleting ? (
                   <>
@@ -1045,12 +1048,14 @@ function ProfileContent() {
                 variant="outline"
                 onClick={() => setIsEmailChangeModalOpen(false)}
                 disabled={isUpdatingProfile}
+                className="flex items-center justify-center"
               >
                 Cancel
               </Button>
               <Button
                 onClick={handleUpdateEmail}
                 disabled={isUpdatingProfile || !newEmail || newEmail === profileData.email}
+                className="flex items-center justify-center"
               >
                 {isUpdatingProfile ? (
                   <>

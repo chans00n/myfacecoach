@@ -114,26 +114,32 @@ export const DailyLiftCard: React.FC<DailyLiftProps> = ({
         </CardContent>
         
         <CardFooter className="pt-0">
-          <ButtonGroup>
+          <div className="w-full space-y-2">
             {videoUrl ? (
               <Button 
                 onClick={() => setVideoModalOpen(true)}
+                className="w-full flex items-center justify-center"
               >
                 <Play className="h-4 w-4 mr-2" /> Start Lift
               </Button>
             ) : (
               <Button 
                 disabled
+                className="w-full"
               >
                 No Video Available
               </Button>
             )}
-            <Button asChild variant="outline">
-              <Link href={liftUrl}>
+            <Button 
+              asChild 
+              variant="outline" 
+              className="w-full"
+            >
+              <Link href={liftUrl} className="flex items-center justify-center">
                 Details <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
-          </ButtonGroup>
+          </div>
         </CardFooter>
       </Card>
       
