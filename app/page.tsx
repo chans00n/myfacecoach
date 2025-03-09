@@ -11,6 +11,7 @@ import { OnboardingScreen } from "@/components/OnboardingScreen";
 import { QuestionnaireScreen } from "@/components/QuestionnaireScreen";
 import { FacialAreaScreen } from "@/components/FacialAreaScreen";
 import { TimeSelectionScreen } from "@/components/TimeSelectionScreen";
+import { FinalLoadingScreen } from "@/components/FinalLoadingScreen";
 
 export default function LandingPage() {
   const { user } = useAuth();
@@ -23,6 +24,7 @@ export default function LandingPage() {
   const [questionnaireComplete, setQuestionnaireComplete] = useState(false);
   const [facialAreaComplete, setFacialAreaComplete] = useState(false);
   const [timeSelectionComplete, setTimeSelectionComplete] = useState(false);
+  const [finalLoadingComplete, setFinalLoadingComplete] = useState(false);
   const [userPreferences, setUserPreferences] = useState<string[]>([]);
   const [facialAreas, setFacialAreas] = useState<string[]>([]);
   const [timePreference, setTimePreference] = useState<string | null>(null);
@@ -76,6 +78,18 @@ export default function LandingPage() {
     console.log("Time preference:", preference.time);
   };
 
+  // Handle final loading completion
+  const handleFinalLoadingComplete = () => {
+    setFinalLoadingComplete(true);
+    
+    // Log all collected user data
+    console.log("Onboarding complete with data:", {
+      preferences: userPreferences,
+      facialAreas: facialAreas,
+      timePreference: timePreference
+    });
+  };
+
   useEffect(() => {
     if (user) {
       router.push('/dashboard');
@@ -112,8 +126,13 @@ export default function LandingPage() {
         <TimeSelectionScreen onComplete={handleTimeSelectionComplete} />
       )}
       
+      {/* Final Loading Screen - shown after time selection */}
+      {loadingComplete && onboardingComplete && questionnaireComplete && facialAreaComplete && timeSelectionComplete && !finalLoadingComplete && (
+        <FinalLoadingScreen onComplete={handleFinalLoadingComplete} />
+      )}
+      
       {/* Main Content - only shown after all onboarding steps are complete */}
-      {loadingComplete && onboardingComplete && questionnaireComplete && facialAreaComplete && timeSelectionComplete && (
+      {loadingComplete && onboardingComplete && questionnaireComplete && facialAreaComplete && timeSelectionComplete && finalLoadingComplete && (
         <div className="grid min-h-svh lg:grid-cols-2">
           <div className="flex flex-col gap-4 p-6 md:p-10">
             <div className="flex flex-1 items-center justify-center">
