@@ -62,26 +62,16 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.4 }}
-            className="text-4xl md:text-5xl font-bold text-center mb-8 text-foreground"
+            className="text-4xl md:text-5xl font-bold text-center mb-16 text-foreground"
           >
             Elevate Your Routine with Facial Fitness.
           </motion.h1>
-          
-          {/* Subtitle - optional */}
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.6 }}
-            className="text-xl text-center text-muted-foreground mb-16 max-w-md"
-          >
-            Build healthy habits and take care of your facial well-being.
-          </motion.p>
           
           {/* Next button */}
           <motion.button
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.8 }}
+            transition={{ duration: 0.5, delay: 0.6 }}
             onClick={handleNext}
             className="bg-foreground text-background dark:bg-background dark:text-foreground font-medium rounded-full px-12 py-4 text-lg hover:opacity-90 transition-opacity"
           >
@@ -92,7 +82,7 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ duration: 0.5, delay: 1 }}
+            transition={{ duration: 0.5, delay: 0.8 }}
             className="absolute bottom-8 w-12 h-1 bg-foreground/20 rounded-full"
           />
         </motion.div>

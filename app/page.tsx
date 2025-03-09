@@ -17,19 +17,10 @@ export default function LandingPage() {
   const [contentLoaded, setContentLoaded] = useState(false);
   const [loadingComplete, setLoadingComplete] = useState(false);
   const [onboardingComplete, setOnboardingComplete] = useState(false);
-  
-  // Check if user has seen onboarding before
-  const [hasSeenOnboarding, setHasSeenOnboarding] = useState(false);
 
-  // After mounting, we can access the theme and local storage
+  // After mounting, we can access the theme
   useEffect(() => {
     setMounted(true);
-    
-    // Check if user has seen onboarding before
-    const onboardingSeen = localStorage.getItem('myfc_onboarding_seen');
-    if (onboardingSeen === 'true') {
-      setHasSeenOnboarding(true);
-    }
     
     // Simulate content loading
     const timer = setTimeout(() => {
@@ -42,18 +33,11 @@ export default function LandingPage() {
   // Handle loading screen completion
   const handleLoadingComplete = () => {
     setLoadingComplete(true);
-    
-    // If user has seen onboarding before, skip it
-    if (hasSeenOnboarding) {
-      setOnboardingComplete(true);
-    }
   };
 
   // Handle onboarding completion
   const handleOnboardingComplete = () => {
     setOnboardingComplete(true);
-    // Save that user has seen onboarding
-    localStorage.setItem('myfc_onboarding_seen', 'true');
   };
 
   useEffect(() => {
@@ -72,13 +56,13 @@ export default function LandingPage() {
         />
       )}
       
-      {/* Onboarding Screen - shown after loading if user hasn't seen it before */}
-      {loadingComplete && !onboardingComplete && !hasSeenOnboarding && (
+      {/* Onboarding Screen - shown after loading */}
+      {loadingComplete && !onboardingComplete && (
         <OnboardingScreen onComplete={handleOnboardingComplete} />
       )}
       
-      {/* Main Content - only shown after loading and onboarding (if applicable) */}
-      {(onboardingComplete || hasSeenOnboarding) && (
+      {/* Main Content - only shown after loading and onboarding */}
+      {onboardingComplete && (
         <div className="grid min-h-svh lg:grid-cols-2">
           <div className="flex flex-col gap-4 p-6 md:p-10">
             <div className="flex flex-1 items-center justify-center">
