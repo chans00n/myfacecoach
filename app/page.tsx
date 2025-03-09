@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import { useTheme } from "next-themes";
 import { LoadingScreen } from "@/components/LoadingScreen";
+import { OnboardingScreen } from "@/components/OnboardingScreen";
 
 export default function LandingPage() {
   const { user } = useAuth();
@@ -14,10 +15,21 @@ export default function LandingPage() {
   const { theme, resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const [contentLoaded, setContentLoaded] = useState(false);
+  const [loadingComplete, setLoadingComplete] = useState(false);
+  const [onboardingComplete, setOnboardingComplete] = useState(false);
+  
+  // Check if user has seen onboarding before
+  const [hasSeenOnboarding, setHasSeenOnboarding] = useState(false);
 
-  // After mounting, we can access the theme
+  // After mounting, we can access the theme and local storage
   useEffect(() => {
     setMounted(true);
+    
+    // Check if user has seen onboarding before
+    const onboardingSeen = localStorage.getItem('myfc_onboarding_seen');
+    if (onboardingSeen === 'true') {
+      setHasSeenOnboarding(true);
+    }
     
     // Simulate content loading
     const timer = setTimeout(() => {
@@ -27,6 +39,23 @@ export default function LandingPage() {
     return () => clearTimeout(timer);
   }, []);
 
+  // Handle loading screen completion
+  const handleLoadingComplete = () => {
+    setLoadingComplete(true);
+    
+    // If user has seen onboarding before, skip it
+    if (hasSeenOnboarding) {
+      setOnboardingComplete(true);
+    }
+  };
+
+  // Handle onboarding completion
+  const handleOnboardingComplete = () => {
+    setOnboardingComplete(true);
+    // Save that user has seen onboarding
+    localStorage.setItem('myfc_onboarding_seen', 'true');
+  };
+
   useEffect(() => {
     if (user) {
       router.push('/dashboard');
@@ -35,40 +64,54 @@ export default function LandingPage() {
 
   return (
     <>
-      <LoadingScreen />
+      {/* Loading Screen */}
+      {!loadingComplete && (
+        <LoadingScreen 
+          minimumLoadTimeMs={2000}
+          onComplete={handleLoadingComplete}
+        />
+      )}
       
-      <div className="grid min-h-svh lg:grid-cols-2">
-        <div className="flex flex-col gap-4 p-6 md:p-10">
-          <div className="flex flex-1 items-center justify-center">
-            <div className="w-full max-w-xs">
-              <div className="flex justify-center mb-8">
-                {mounted && (
-                  <Image
-                    src={(theme === 'dark' || resolvedTheme === 'dark') 
-                      ? "/MYFC_logo_white.png" 
-                      : "/MYFC_logo.png"}
-                    alt="MYFC Logo"
-                    width={100}
-                    height={100}
-                    priority
-                  />
-                )}
+      {/* Onboarding Screen - shown after loading if user hasn't seen it before */}
+      {loadingComplete && !onboardingComplete && !hasSeenOnboarding && (
+        <OnboardingScreen onComplete={handleOnboardingComplete} />
+      )}
+      
+      {/* Main Content - only shown after loading and onboarding (if applicable) */}
+      {(onboardingComplete || hasSeenOnboarding) && (
+        <div className="grid min-h-svh lg:grid-cols-2">
+          <div className="flex flex-col gap-4 p-6 md:p-10">
+            <div className="flex flex-1 items-center justify-center">
+              <div className="w-full max-w-xs">
+                <div className="flex justify-center mb-8">
+                  {mounted && (
+                    <Image
+                      src={(theme === 'dark' || resolvedTheme === 'dark') 
+                        ? "/MYFC_logo_white.png" 
+                        : "/MYFC_logo.png"}
+                      alt="MYFC Logo"
+                      width={100}
+                      height={100}
+                      priority
+                    />
+                  )}
+                </div>
+                <LoginForm />
               </div>
-              <LoginForm />
             </div>
           </div>
+          <div className="relative hidden bg-muted lg:block">
+            <Image
+              src="/images/zulmaury-saavedra-kXC0dbqtRe4-unsplash.jpg"
+              alt="Login background"
+              fill
+              className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.2] dark:grayscale"
+              priority
+            />
+            <div className="absolute inset-0 bg-black/20"></div>
+          </div>
         </div>
-        <div className="relative hidden bg-muted lg:block">
-          <Image
-            src="/images/zulmaury-saavedra-kXC0dbqtRe4-unsplash.jpg"
-            alt="Login background"
-            fill
-            className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.2] dark:grayscale"
-            priority
-          />
-          <div className="absolute inset-0 bg-black/20"></div>
-        </div>
-      </div>
+      )}
     </>
   );
 }

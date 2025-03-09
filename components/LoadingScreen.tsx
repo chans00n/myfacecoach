@@ -7,9 +7,10 @@ import { useTheme } from 'next-themes';
 
 interface LoadingScreenProps {
   minimumLoadTimeMs?: number;
+  onComplete?: () => void;
 }
 
-export function LoadingScreen({ minimumLoadTimeMs = 1500 }: LoadingScreenProps) {
+export function LoadingScreen({ minimumLoadTimeMs = 1500, onComplete }: LoadingScreenProps) {
   const [isLoading, setIsLoading] = useState(true);
   const { theme, resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
@@ -20,10 +21,14 @@ export function LoadingScreen({ minimumLoadTimeMs = 1500 }: LoadingScreenProps) 
     // Ensure the loading screen shows for at least the minimum time
     const timer = setTimeout(() => {
       setIsLoading(false);
+      // Call the onComplete callback if provided
+      if (onComplete) {
+        onComplete();
+      }
     }, minimumLoadTimeMs);
 
     return () => clearTimeout(timer);
-  }, [minimumLoadTimeMs]);
+  }, [minimumLoadTimeMs, onComplete]);
 
   // If not mounted yet, render nothing to avoid hydration mismatch
   if (!mounted) return null;
