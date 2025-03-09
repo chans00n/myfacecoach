@@ -194,34 +194,39 @@ function ProfileContent() {
 
     const fetchProfileData = async () => {
       try {
-        // Get user metadata
-        const { data, error } = await supabase
-          .from('users')
-          .select('name, avatar_url')
-          .eq('id', user.id)
-          .single();
+        // Initialize with user auth data first
+        setProfileData({
+          name: user.user_metadata?.name || '',
+          email: user.email || '',
+          avatarUrl: user.user_metadata?.avatar_url || ''
+        });
+        
+        // Then try to get additional data from users table
+        try {
+          const { data, error } = await supabase
+            .from('users')
+            .select('name, avatar_url')
+            .eq('id', user.id)
+            .single();
 
-        if (error) {
+          if (error) {
+            console.error('Error fetching profile data:', error);
+            // Don't return here, just continue with auth data
+          }
+
+          if (data) {
+            setProfileData(prev => ({
+              ...prev,
+              name: data.name || prev.name,
+              avatarUrl: data.avatar_url || prev.avatarUrl
+            }));
+          }
+        } catch (error) {
           console.error('Error fetching profile data:', error);
-          return;
-        }
-
-        if (data) {
-          setProfileData({
-            name: data.name || user.user_metadata?.name || '',
-            email: user.email || '',
-            avatarUrl: data.avatar_url || user.user_metadata?.avatar_url || ''
-          });
-        } else {
-          // If no profile data exists, initialize with user auth data
-          setProfileData({
-            name: user.user_metadata?.name || '',
-            email: user.email || '',
-            avatarUrl: user.user_metadata?.avatar_url || ''
-          });
+          // Continue with auth data
         }
       } catch (error) {
-        console.error('Error fetching profile data:', error);
+        console.error('Error in profile data initialization:', error);
       }
     };
 
@@ -501,23 +506,31 @@ function ProfileContent() {
     setProfileError(undefined);
     
     try {
-      // Update user metadata
+      // Update user metadata (this always works)
       const { error: metadataError } = await supabase.auth.updateUser({
         data: { name: profileData.name }
       });
       
       if (metadataError) throw metadataError;
       
-      // Update users table
-      const { error: dbError } = await supabase
-        .from('users')
-        .upsert({
-          id: user.id,
-          name: profileData.name,
-          updated_at: new Date().toISOString()
-        });
-      
-      if (dbError) throw dbError;
+      // Try to update users table, but don't fail if it doesn't work
+      try {
+        const { error: dbError } = await supabase
+          .from('users')
+          .upsert({
+            id: user.id,
+            name: profileData.name,
+            updated_at: new Date().toISOString()
+          });
+        
+        if (dbError) {
+          console.error('Error updating users table:', dbError);
+          // Continue with metadata update
+        }
+      } catch (error) {
+        console.error('Error updating users table:', error);
+        // Continue with metadata update
+      }
       
       if (isMounted.current) {
         toast({
@@ -594,47 +607,90 @@ function ProfileContent() {
     setProfileError(undefined);
     
     try {
-      // Upload file to storage
-      const fileExt = avatarFile.name.split('.').pop();
-      const fileName = `${user.id}-${Date.now()}.${fileExt}`;
-      const filePath = `avatars/${fileName}`;
+      // First, ensure the avatar is stored in user metadata which always works
+      // Convert the file to a data URL
+      const reader = new FileReader();
       
-      const { error: uploadError } = await supabase.storage
-        .from('user-avatars')
-        .upload(filePath, avatarFile);
+      // Create a promise to wait for the FileReader
+      const readFileAsDataURL = new Promise<string>((resolve, reject) => {
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(avatarFile);
+      });
       
-      if (uploadError) throw uploadError;
+      // Get the data URL
+      const dataUrl = await readFileAsDataURL;
       
-      // Get public URL
-      const { data: urlData } = supabase.storage
-        .from('user-avatars')
-        .getPublicUrl(filePath);
-      
-      const avatarUrl = urlData.publicUrl;
-      
-      // Update user metadata
+      // Update user metadata with the data URL
       const { error: metadataError } = await supabase.auth.updateUser({
-        data: { avatar_url: avatarUrl }
+        data: { avatar_url: dataUrl }
       });
       
       if (metadataError) throw metadataError;
       
-      // Update users table
-      const { error: dbError } = await supabase
-        .from('users')
-        .upsert({
-          id: user.id,
-          avatar_url: avatarUrl,
-          updated_at: new Date().toISOString()
-        });
-      
-      if (dbError) throw dbError;
-      
       // Update local state
       setProfileData(prev => ({
         ...prev,
-        avatarUrl
+        avatarUrl: dataUrl
       }));
+      
+      // Try to upload to storage as well (but don't fail if it doesn't work)
+      try {
+        // Upload file to storage
+        const fileExt = avatarFile.name.split('.').pop();
+        const fileName = `${user.id}-${Date.now()}.${fileExt}`;
+        const filePath = `avatars/${fileName}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('user-avatars')
+          .upload(filePath, avatarFile);
+        
+        if (uploadError) {
+          console.error('Storage upload error:', uploadError);
+          // Continue with metadata avatar
+        } else {
+          // Get public URL
+          const { data: urlData } = supabase.storage
+            .from('user-avatars')
+            .getPublicUrl(filePath);
+          
+          const avatarUrl = urlData.publicUrl;
+          
+          // Update user metadata with the storage URL
+          await supabase.auth.updateUser({
+            data: { avatar_url: avatarUrl }
+          });
+          
+          // Update local state
+          setProfileData(prev => ({
+            ...prev,
+            avatarUrl
+          }));
+        }
+        
+        // Try to update users table
+        try {
+          const { error: dbError } = await supabase
+            .from('users')
+            .upsert({
+              id: user.id,
+              name: profileData.name,
+              avatar_url: profileData.avatarUrl,
+              updated_at: new Date().toISOString()
+            });
+          
+          if (dbError) {
+            console.error('Database update error:', dbError);
+            // Continue with metadata avatar
+          }
+        } catch (error) {
+          console.error('Error updating users table:', error);
+          // Continue with metadata avatar
+        }
+      } catch (error) {
+        console.error('Error in storage upload flow:', error);
+        // Continue with metadata avatar
+      }
       
       setAvatarFile(null);
       
@@ -1015,7 +1071,7 @@ function ProfileContent() {
             <Button
               variant="destructive"
               onClick={handleDeleteAccount}
-              disabled={isDeleting || (subscription && subscription.status === 'active')}
+              disabled={isDeleting || Boolean(subscription?.status === 'active')}
             >
               {isDeleting ? (
                 <>
