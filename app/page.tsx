@@ -8,6 +8,7 @@ import Image from "next/image";
 import { useTheme } from "next-themes";
 import { LoadingScreen } from "@/components/LoadingScreen";
 import { OnboardingScreen } from "@/components/OnboardingScreen";
+import { QuestionnaireScreen } from "@/components/QuestionnaireScreen";
 
 export default function LandingPage() {
   const { user } = useAuth();
@@ -17,6 +18,8 @@ export default function LandingPage() {
   const [contentLoaded, setContentLoaded] = useState(false);
   const [loadingComplete, setLoadingComplete] = useState(false);
   const [onboardingComplete, setOnboardingComplete] = useState(false);
+  const [questionnaireComplete, setQuestionnaireComplete] = useState(false);
+  const [userPreferences, setUserPreferences] = useState<string[]>([]);
 
   // After mounting, we can access the theme
   useEffect(() => {
@@ -40,6 +43,15 @@ export default function LandingPage() {
     setOnboardingComplete(true);
   };
 
+  // Handle questionnaire completion
+  const handleQuestionnaireComplete = (selectedOptions: string[]) => {
+    setUserPreferences(selectedOptions);
+    setQuestionnaireComplete(true);
+    
+    // Log the selected preferences (can be used later for personalization)
+    console.log("User preferences:", selectedOptions);
+  };
+
   useEffect(() => {
     if (user) {
       router.push('/dashboard');
@@ -61,8 +73,13 @@ export default function LandingPage() {
         <OnboardingScreen onComplete={handleOnboardingComplete} />
       )}
       
-      {/* Main Content - only shown after loading and onboarding */}
-      {onboardingComplete && (
+      {/* Questionnaire Screen - shown after onboarding */}
+      {loadingComplete && onboardingComplete && !questionnaireComplete && (
+        <QuestionnaireScreen onComplete={handleQuestionnaireComplete} />
+      )}
+      
+      {/* Main Content - only shown after loading, onboarding, and questionnaire */}
+      {loadingComplete && onboardingComplete && questionnaireComplete && (
         <div className="grid min-h-svh lg:grid-cols-2">
           <div className="flex flex-col gap-4 p-6 md:p-10">
             <div className="flex flex-1 items-center justify-center">
