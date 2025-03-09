@@ -201,11 +201,39 @@ function ProfileContent() {
           avatarUrl: user.user_metadata?.avatar_url || ''
         });
         
-        // Then try to get additional data from users table
+        // Then try to get additional data from users table if it exists
         try {
+          // First check if the users table exists and what columns it has
+          const { data: tableInfo, error: tableError } = await supabase
+            .from('users')
+            .select('*')
+            .limit(1);
+          
+          if (tableError) {
+            console.log('Users table might not exist or is empty:', tableError.message);
+            return; // Continue with auth data only
+          }
+          
+          // Determine which columns to query based on what exists
+          const columnsToSelect = [];
+          const firstRow = tableInfo?.[0];
+          
+          if (firstRow) {
+            if ('full_name' in firstRow) columnsToSelect.push('full_name');
+            if ('name' in firstRow) columnsToSelect.push('name');
+            if ('avatar_url' in firstRow) columnsToSelect.push('avatar_url');
+            if ('profile_image' in firstRow) columnsToSelect.push('profile_image');
+          }
+          
+          if (columnsToSelect.length === 0) {
+            console.log('No relevant columns found in users table');
+            return; // Continue with auth data only
+          }
+          
+          // Query with the columns that actually exist
           const { data, error } = await supabase
             .from('users')
-            .select('name, avatar_url')
+            .select(columnsToSelect.join(', '))
             .eq('id', user.id)
             .single();
 
@@ -217,8 +245,10 @@ function ProfileContent() {
           if (data) {
             setProfileData(prev => ({
               ...prev,
-              name: data.name || prev.name,
-              avatarUrl: data.avatar_url || prev.avatarUrl
+              // Try different possible column names for the name
+              name: (data as any).full_name || (data as any).name || prev.name,
+              // Try different possible column names for the avatar
+              avatarUrl: (data as any).avatar_url || (data as any).profile_image || prev.avatarUrl
             }));
           }
         } catch (error) {
@@ -513,23 +543,57 @@ function ProfileContent() {
       
       if (metadataError) throw metadataError;
       
-      // Try to update users table, but don't fail if it doesn't work
+      // Try to update users table
       try {
+        // First check if the users table exists and what columns it has
+        const { data: tableInfo, error: tableError } = await supabase
+          .from('users')
+          .select('*')
+          .limit(1);
+        
+        if (tableError) {
+          console.log('Users table might not exist or is empty:', tableError.message);
+          return; // Continue with metadata avatar only
+        }
+        
+        // Determine which columns exist in the table
+        const firstRow = tableInfo?.[0];
+        if (!firstRow) {
+          console.log('Users table is empty');
+          return; // Continue with metadata avatar only
+        }
+        
+        // Create an upsert object with only the columns that exist
+        const upsertData: Record<string, any> = {
+          id: user.id,
+          updated_at: new Date().toISOString()
+        };
+        
+        // Add name field if it exists
+        if ('name' in firstRow) {
+          upsertData.name = profileData.name;
+        } else if ('full_name' in firstRow) {
+          upsertData.full_name = profileData.name;
+        }
+        
+        // Add avatar field if it exists
+        if ('avatar_url' in firstRow) {
+          upsertData.avatar_url = profileData.avatarUrl;
+        } else if ('profile_image' in firstRow) {
+          upsertData.profile_image = profileData.avatarUrl;
+        }
+        
         const { error: dbError } = await supabase
           .from('users')
-          .upsert({
-            id: user.id,
-            name: profileData.name,
-            updated_at: new Date().toISOString()
-          });
+          .upsert(upsertData);
         
         if (dbError) {
-          console.error('Error updating users table:', dbError);
-          // Continue with metadata update
+          console.error('Database update error:', dbError);
+          // Continue with metadata avatar
         }
       } catch (error) {
         console.error('Error updating users table:', error);
-        // Continue with metadata update
+        // Continue with metadata avatar
       }
       
       if (isMounted.current) {
@@ -670,14 +734,47 @@ function ProfileContent() {
         
         // Try to update users table
         try {
+          // First check if the users table exists and what columns it has
+          const { data: tableInfo, error: tableError } = await supabase
+            .from('users')
+            .select('*')
+            .limit(1);
+          
+          if (tableError) {
+            console.log('Users table might not exist or is empty:', tableError.message);
+            return; // Continue with metadata avatar only
+          }
+          
+          // Determine which columns exist in the table
+          const firstRow = tableInfo?.[0];
+          if (!firstRow) {
+            console.log('Users table is empty');
+            return; // Continue with metadata avatar only
+          }
+          
+          // Create an upsert object with only the columns that exist
+          const upsertData: Record<string, any> = {
+            id: user.id,
+            updated_at: new Date().toISOString()
+          };
+          
+          // Add name field if it exists
+          if ('name' in firstRow) {
+            upsertData.name = profileData.name;
+          } else if ('full_name' in firstRow) {
+            upsertData.full_name = profileData.name;
+          }
+          
+          // Add avatar field if it exists
+          if ('avatar_url' in firstRow) {
+            upsertData.avatar_url = profileData.avatarUrl;
+          } else if ('profile_image' in firstRow) {
+            upsertData.profile_image = profileData.avatarUrl;
+          }
+          
           const { error: dbError } = await supabase
             .from('users')
-            .upsert({
-              id: user.id,
-              name: profileData.name,
-              avatar_url: profileData.avatarUrl,
-              updated_at: new Date().toISOString()
-            });
+            .upsert(upsertData);
           
           if (dbError) {
             console.error('Database update error:', dbError);
