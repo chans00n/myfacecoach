@@ -9,6 +9,7 @@ import { ErrorBoundary } from 'react-error-boundary';
 import { StripeBuyButton } from '@/components/StripeBuyButton';
 import { FaCheckCircle, FaCreditCard, FaSync } from 'react-icons/fa';
 import { Button } from '@/components/ui/button';
+import { ButtonGroup } from '@/components/ui/button-group';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
@@ -693,34 +694,36 @@ function ProfileContent() {
                   </div>
                   
                   <div className="flex flex-col sm:flex-row gap-3 mt-6">
-                    <Button 
-                      variant="outline" 
-                      className="flex items-center gap-2"
-                      onClick={openStripeCustomerPortal}
-                    >
-                      <FaCreditCard className="text-muted-foreground" />
-                      Manage Billing
-                    </Button>
-                    
-                    <Button 
-                      variant="outline" 
-                      className="flex items-center gap-2"
-                      onClick={handleCheckStatus}
-                      disabled={isCheckingStatus}
-                    >
-                      <FaSync className={`text-muted-foreground ${isCheckingStatus ? 'animate-spin' : ''}`} />
-                      {isCheckingStatus ? 'Checking...' : 'Refresh Status'}
-                    </Button>
-                    
-                    {subscription.status === 'active' && !subscription.cancel_at_period_end && (
+                    <ButtonGroup>
                       <Button 
-                        variant="destructive" 
-                        onClick={() => setIsCancelModalOpen(true)}
-                        disabled={isCancelling}
+                        variant="outline" 
+                        className="flex items-center gap-2"
+                        onClick={openStripeCustomerPortal}
                       >
-                        {isCancelling ? 'Cancelling...' : 'Cancel Subscription'}
+                        <FaCreditCard className="text-muted-foreground" />
+                        Manage Billing
                       </Button>
-                    )}
+                      
+                      <Button 
+                        variant="outline" 
+                        className="flex items-center gap-2"
+                        onClick={handleCheckStatus}
+                        disabled={isCheckingStatus}
+                      >
+                        <FaSync className={`text-muted-foreground ${isCheckingStatus ? 'animate-spin' : ''}`} />
+                        {isCheckingStatus ? 'Checking...' : 'Refresh Status'}
+                      </Button>
+                      
+                      {subscription.status === 'active' && !subscription.cancel_at_period_end && (
+                        <Button 
+                          variant="destructive" 
+                          onClick={() => setIsCancelModalOpen(true)}
+                          disabled={isCancelling}
+                        >
+                          {isCancelling ? 'Cancelling...' : 'Cancel Subscription'}
+                        </Button>
+                      )}
+                    </ButtonGroup>
                   </div>
                 </div>
               ) : (
@@ -771,6 +774,7 @@ function ProfileContent() {
                         onClick={handleAvatarUpload} 
                         disabled={!avatarFile || isUploadingAvatar}
                         size="sm"
+                        className="w-full sm:w-auto"
                       >
                         {isUploadingAvatar ? (
                           <>
@@ -798,7 +802,7 @@ function ProfileContent() {
                     <Button 
                       onClick={handleUpdateName} 
                       disabled={isUpdatingProfile || !profileData.name}
-                      size="sm"
+                      className="w-full sm:w-auto"
                     >
                       {isUpdatingProfile ? 'Saving...' : 'Save'}
                     </Button>
@@ -815,6 +819,7 @@ function ProfileContent() {
                       onClick={() => setIsEmailChangeModalOpen(true)} 
                       variant="outline"
                       size="sm"
+                      className="w-full sm:w-auto"
                     >
                       Change
                     </Button>
@@ -859,7 +864,11 @@ function ProfileContent() {
               </div>
             </CardContent>
             <CardFooter>
-              <Button onClick={handleSavePreferences} disabled={isSaving}>
+              <Button 
+                onClick={handleSavePreferences} 
+                disabled={isSaving}
+                className="w-full sm:w-auto"
+              >
                 {isSaving ? 'Saving...' : 'Save Changes'}
               </Button>
             </CardFooter>
@@ -885,6 +894,7 @@ function ProfileContent() {
                   <Button 
                     variant="destructive" 
                     onClick={() => setIsDeleteModalOpen(true)}
+                    className="w-full sm:w-auto"
                   >
                     Delete Account
                   </Button>
@@ -926,7 +936,11 @@ function ProfileContent() {
               </div>
             </CardContent>
             <CardFooter>
-              <Button onClick={handleSavePreferences} disabled={isSaving}>
+              <Button 
+                onClick={handleSavePreferences} 
+                disabled={isSaving}
+                className="w-full sm:w-auto"
+              >
                 {isSaving ? 'Saving...' : 'Save Changes'}
               </Button>
             </CardFooter>
@@ -961,27 +975,29 @@ function ProfileContent() {
           )}
           
           <div className="flex flex-col space-y-3 sm:space-y-0 sm:flex-row sm:space-x-3 sm:justify-end">
-            <Button
-              variant="outline"
-              onClick={() => setIsDeleteModalOpen(false)}
-              disabled={isDeleting}
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={handleDeleteAccount}
-              disabled={isDeleting || Boolean(subscription?.status === 'active')}
-            >
-              {isDeleting ? (
-                <>
-                  <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-background border-t-transparent"></span>
-                  Deleting...
-                </>
-              ) : (
-                'Delete Account'
-              )}
-            </Button>
+            <ButtonGroup>
+              <Button
+                variant="outline"
+                onClick={() => setIsDeleteModalOpen(false)}
+                disabled={isDeleting}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={handleDeleteAccount}
+                disabled={isDeleting || Boolean(subscription?.status === 'active')}
+              >
+                {isDeleting ? (
+                  <>
+                    <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-background border-t-transparent"></span>
+                    Deleting...
+                  </>
+                ) : (
+                  'Delete Account'
+                )}
+              </Button>
+            </ButtonGroup>
           </div>
         </DialogContent>
       </Dialog>
@@ -1024,26 +1040,28 @@ function ProfileContent() {
           </div>
           
           <div className="flex flex-col space-y-3 sm:space-y-0 sm:flex-row sm:space-x-3 sm:justify-end">
-            <Button
-              variant="outline"
-              onClick={() => setIsEmailChangeModalOpen(false)}
-              disabled={isUpdatingProfile}
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleUpdateEmail}
-              disabled={isUpdatingProfile || !newEmail || newEmail === profileData.email}
-            >
-              {isUpdatingProfile ? (
-                <>
-                  <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-background border-t-transparent"></span>
-                  Updating...
-                </>
-              ) : (
-                'Update Email'
-              )}
-            </Button>
+            <ButtonGroup>
+              <Button
+                variant="outline"
+                onClick={() => setIsEmailChangeModalOpen(false)}
+                disabled={isUpdatingProfile}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleUpdateEmail}
+                disabled={isUpdatingProfile || !newEmail || newEmail === profileData.email}
+              >
+                {isUpdatingProfile ? (
+                  <>
+                    <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-background border-t-transparent"></span>
+                    Updating...
+                  </>
+                ) : (
+                  'Update Email'
+                )}
+              </Button>
+            </ButtonGroup>
           </div>
         </DialogContent>
       </Dialog>
@@ -1061,6 +1079,7 @@ export default function ProfilePage() {
           <Button 
             onClick={() => window.location.reload()}
             variant="outline"
+            className="w-full sm:w-auto"
           >
             Try Again
           </Button>

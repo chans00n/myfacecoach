@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { ButtonGroup } from "@/components/ui/button-group";
 import { Clock, Calendar, ArrowRight, Play } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -112,27 +113,27 @@ export const DailyLiftCard: React.FC<DailyLiftProps> = ({
           </div>
         </CardContent>
         
-        <CardFooter className="pt-0 flex gap-2">
-          {videoUrl ? (
-            <Button 
-              className="flex-1"
-              onClick={() => setVideoModalOpen(true)}
-            >
-              <Play className="h-4 w-4 mr-2" /> Start Lift
+        <CardFooter className="pt-0">
+          <ButtonGroup>
+            {videoUrl ? (
+              <Button 
+                onClick={() => setVideoModalOpen(true)}
+              >
+                <Play className="h-4 w-4 mr-2" /> Start Lift
+              </Button>
+            ) : (
+              <Button 
+                disabled
+              >
+                No Video Available
+              </Button>
+            )}
+            <Button asChild variant="outline">
+              <Link href={liftUrl}>
+                Details <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
             </Button>
-          ) : (
-            <Button 
-              className="flex-1"
-              disabled
-            >
-              No Video Available
-            </Button>
-          )}
-          <Button asChild variant="outline" className="flex-1">
-            <Link href={liftUrl}>
-              Details <ArrowRight className="ml-2 h-4 w-4" />
-            </Link>
-          </Button>
+          </ButtonGroup>
         </CardFooter>
       </Card>
       
