@@ -40,8 +40,22 @@ export function LoadingScreen({ minimumLoadTimeMs = 1500, onComplete }: LoadingS
           initial={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.5, ease: 'easeInOut' }}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-background"
+          className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-background"
         >
+          {/* Progress bar at the top */}
+          <motion.div 
+            className="absolute top-0 left-0 right-0 h-1 bg-primary/20 overflow-hidden"
+            initial={{ width: '100%' }}
+          >
+            <motion.div 
+              className="h-full bg-primary"
+              initial={{ width: '0%', x: '0%' }}
+              animate={{ width: '100%', x: '0%' }}
+              transition={{ duration: minimumLoadTimeMs / 1000, ease: 'easeInOut' }}
+            />
+          </motion.div>
+          
+          {/* Logo */}
           <motion.div
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
@@ -58,17 +72,6 @@ export function LoadingScreen({ minimumLoadTimeMs = 1500, onComplete }: LoadingS
               height={120}
               priority
             />
-            <motion.div 
-              className="mt-8 h-1 w-24 bg-primary/20 rounded-full overflow-hidden"
-              initial={{ width: '6rem' }}
-            >
-              <motion.div 
-                className="h-full bg-primary"
-                initial={{ width: '0%' }}
-                animate={{ width: '100%' }}
-                transition={{ duration: minimumLoadTimeMs / 1000, ease: 'easeInOut' }}
-              />
-            </motion.div>
           </motion.div>
         </motion.div>
       )}
