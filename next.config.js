@@ -1,4 +1,6 @@
 /** @type {import('next').NextConfig} */
+const withPWA = require('next-pwa')(require('./pwa.config.js'));
+
 const nextConfig = {
   // ... your existing config ...
   typescript: {
@@ -21,4 +23,4 @@ const nextConfig = {
   },
 }
 
-module.exports = nextConfig 
+module.exports = withPWA(nextConfig); 

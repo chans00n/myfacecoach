@@ -11,10 +11,16 @@ import '@/utils/amplitude-fix';
 import { CookieConsent } from "@/components/ui/cookie-consent";
 import { useEffect } from 'react';
 import { initializeRealtimeConnection } from '@/utils/websocket-manager';
+import dynamic from 'next/dynamic';
 // import { PostHogProvider } from '@/contexts/PostHogContext';
 // import { PostHogErrorBoundary } from '@/components/PostHogErrorBoundary';
 
 const geist = Geist({ subsets: ['latin'] });
+
+// Dynamically import the InstallPrompt component with SSR disabled
+const InstallPrompt = dynamic(() => import('@/components/pwa/InstallPrompt'), { 
+  ssr: false 
+});
 
 export default function RootLayout({
   children,
@@ -38,6 +44,7 @@ export default function RootLayout({
                 <ProtectedRoute>
                   <main>{children}</main>
                   <CookieConsent />
+                  <InstallPrompt />
                 </ProtectedRoute>
               </AuthProvider>
             </ThemeProvider>
