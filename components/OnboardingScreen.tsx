@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from 'next-themes';
 import { X } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface OnboardingScreenProps {
   onComplete: () => void;
@@ -68,15 +69,19 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
           </motion.h1>
           
           {/* Next button */}
-          <motion.button
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.6 }}
-            onClick={handleNext}
-            className="bg-foreground text-background dark:bg-background dark:text-foreground font-medium rounded-full px-12 py-4 text-lg hover:opacity-90 transition-opacity"
           >
-            Next
-          </motion.button>
+            <Button 
+              onClick={handleNext}
+              size="lg"
+              className="px-12 py-6 text-lg rounded-full h-auto"
+            >
+              Next
+            </Button>
+          </motion.div>
           
           {/* Bottom indicator */}
           <motion.div
