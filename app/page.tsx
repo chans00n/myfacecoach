@@ -25,7 +25,7 @@ export default function LandingPage() {
   const [timeSelectionComplete, setTimeSelectionComplete] = useState(false);
   const [userPreferences, setUserPreferences] = useState<string[]>([]);
   const [facialAreas, setFacialAreas] = useState<string[]>([]);
-  const [timePreference, setTimePreference] = useState<{ period: string; time: string } | null>(null);
+  const [timePreference, setTimePreference] = useState<string | null>(null);
 
   // After mounting, we can access the theme
   useEffect(() => {
@@ -68,12 +68,12 @@ export default function LandingPage() {
   };
 
   // Handle time selection completion
-  const handleTimeSelectionComplete = (preference: { period: string; time: string }) => {
-    setTimePreference(preference);
+  const handleTimeSelectionComplete = (preference: { time: string }) => {
+    setTimePreference(preference.time);
     setTimeSelectionComplete(true);
     
     // Log the selected time preference (can be used later for personalization)
-    console.log("Time preference:", preference);
+    console.log("Time preference:", preference.time);
   };
 
   useEffect(() => {
