@@ -29,18 +29,21 @@ export function MobileNav({ className }: MobileNavProps) {
     },
     {
       title: "Settings",
-      url: "/dashboard/profile?tab=account",
+      url: "/dashboard/profile",
     },
   ]
 
   return (
     <div className={cn(
-      "fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-background/60 backdrop-blur-md pb-safe md:hidden",
+      "fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-background/60 backdrop-blur-md pb-safe pb-4 md:hidden",
       className
     )}>
       <nav className="flex h-16 items-center justify-around px-4">
         {navItems.map((item) => {
-          const isActive = pathname === item.url || pathname.startsWith(`${item.url}/`)
+          // Special case for Settings tab
+          const isActive = item.title === "Settings" 
+            ? pathname.startsWith("/dashboard/profile") 
+            : pathname === item.url || pathname.startsWith(`${item.url}/`)
           
           return (
             <Link
