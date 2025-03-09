@@ -3,12 +3,20 @@
 import { LoginForm } from "@/components/login-form";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
+import { useTheme } from "next-themes";
 
 export default function LandingPage() {
   const { user } = useAuth();
   const router = useRouter();
+  const { theme, resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  // After mounting, we can access the theme
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (user) {
@@ -22,22 +30,17 @@ export default function LandingPage() {
         <div className="flex flex-1 items-center justify-center">
           <div className="w-full max-w-xs">
             <div className="flex justify-center mb-8">
-              <Image
-                src="/MYFC_logo.png"
-                alt="MYFC Logo"
-                width={150}
-                height={150}
-                priority
-                className="dark:hidden"
-              />
-              <Image
-                src="/MYFC_logo_white.png"
-                alt="MYFC Logo"
-                width={150}
-                height={150}
-                priority
-                className="hidden dark:block"
-              />
+              {mounted && (
+                <Image
+                  src={(theme === 'dark' || resolvedTheme === 'dark') 
+                    ? "/MYFC_logo_white.png" 
+                    : "/MYFC_logo.png"}
+                  alt="MYFC Logo"
+                  width={150}
+                  height={150}
+                  priority
+                />
+              )}
             </div>
             <LoginForm />
           </div>
