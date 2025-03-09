@@ -694,10 +694,10 @@ function ProfileContent() {
                   </div>
                   
                   <div className="mt-6">
-                    <ButtonGroup spacing="2">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                       <Button 
                         variant="outline" 
-                        className="flex items-center justify-center gap-2 sm:justify-start"
+                        className="w-full sm:w-auto flex items-center justify-center gap-2"
                         onClick={openStripeCustomerPortal}
                       >
                         <FaCreditCard className="text-muted-foreground" />
@@ -706,7 +706,7 @@ function ProfileContent() {
                       
                       <Button 
                         variant="outline" 
-                        className="flex items-center justify-center gap-2 sm:justify-start"
+                        className="w-full sm:w-auto flex items-center justify-center gap-2"
                         onClick={handleCheckStatus}
                         disabled={isCheckingStatus}
                       >
@@ -717,14 +717,14 @@ function ProfileContent() {
                       {subscription.status === 'active' && !subscription.cancel_at_period_end && (
                         <Button 
                           variant="destructive" 
-                          className="flex items-center justify-center sm:justify-start"
+                          className="w-full sm:w-auto flex items-center justify-center"
                           onClick={() => setIsCancelModalOpen(true)}
                           disabled={isCancelling}
                         >
                           {isCancelling ? 'Cancelling...' : 'Cancel Subscription'}
                         </Button>
                       )}
-                    </ButtonGroup>
+                    </div>
                   </div>
                 </div>
               ) : (
@@ -763,7 +763,7 @@ function ProfileContent() {
                       <Label htmlFor="avatar">Profile Picture</Label>
                       <p className="text-sm text-muted-foreground mb-2">Upload a new profile picture</p>
                     </div>
-                    <div className="flex flex-col gap-2">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                       <Input 
                         id="avatar" 
                         type="file" 
@@ -792,7 +792,7 @@ function ProfileContent() {
                 {/* Name */}
                 <div className="space-y-2">
                   <Label htmlFor="name">Name</Label>
-                  <div className="flex flex-col gap-2">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                     <Input 
                       id="name" 
                       value={profileData.name} 
@@ -813,7 +813,7 @@ function ProfileContent() {
                 {/* Email */}
                 <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>
-                  <div className="flex flex-col gap-2">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                     <Input id="email" value={profileData.email} disabled className="w-full" />
                     <Button 
                       onClick={() => setIsEmailChangeModalOpen(true)} 
@@ -862,7 +862,7 @@ function ProfileContent() {
                 </div>
               </div>
             </CardContent>
-            <CardFooter>
+            <CardFooter className="flex justify-start">
               <Button 
                 onClick={handleSavePreferences} 
                 disabled={isSaving}
@@ -883,7 +883,7 @@ function ProfileContent() {
             </CardHeader>
             <CardContent className="pt-6">
               <div className="space-y-4">
-                <div className="flex flex-col gap-4">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
                   <div>
                     <h3 className="font-medium">Delete Account</h3>
                     <p className="text-sm text-muted-foreground">
@@ -934,7 +934,7 @@ function ProfileContent() {
                 />
               </div>
             </CardContent>
-            <CardFooter>
+            <CardFooter className="flex justify-start">
               <Button 
                 onClick={handleSavePreferences} 
                 disabled={isSaving}
@@ -974,31 +974,29 @@ function ProfileContent() {
           )}
           
           <div className="flex flex-col space-y-3 sm:space-y-0 sm:flex-row sm:space-x-3 sm:justify-end">
-            <ButtonGroup>
-              <Button
-                variant="outline"
-                onClick={() => setIsDeleteModalOpen(false)}
-                disabled={isDeleting}
-                className="flex items-center justify-center sm:justify-start"
-              >
-                Cancel
-              </Button>
-              <Button
-                variant="destructive"
-                onClick={handleDeleteAccount}
-                disabled={isDeleting || Boolean(subscription?.status === 'active')}
-                className="flex items-center justify-center sm:justify-start"
-              >
-                {isDeleting ? (
-                  <>
-                    <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-background border-t-transparent"></span>
-                    Deleting...
-                  </>
-                ) : (
-                  'Delete Account'
-                )}
-              </Button>
-            </ButtonGroup>
+            <Button
+              variant="outline"
+              onClick={() => setIsDeleteModalOpen(false)}
+              disabled={isDeleting}
+              className="w-full sm:w-auto flex items-center justify-center"
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDeleteAccount}
+              disabled={isDeleting || Boolean(subscription?.status === 'active')}
+              className="w-full sm:w-auto flex items-center justify-center"
+            >
+              {isDeleting ? (
+                <>
+                  <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-background border-t-transparent"></span>
+                  Deleting...
+                </>
+              ) : (
+                'Delete Account'
+              )}
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
@@ -1041,30 +1039,28 @@ function ProfileContent() {
           </div>
           
           <div className="flex flex-col space-y-3 sm:space-y-0 sm:flex-row sm:space-x-3 sm:justify-end">
-            <ButtonGroup>
-              <Button
-                variant="outline"
-                onClick={() => setIsEmailChangeModalOpen(false)}
-                disabled={isUpdatingProfile}
-                className="flex items-center justify-center sm:justify-start"
-              >
-                Cancel
-              </Button>
-              <Button
-                onClick={handleUpdateEmail}
-                disabled={isUpdatingProfile || !newEmail || newEmail === profileData.email}
-                className="flex items-center justify-center sm:justify-start"
-              >
-                {isUpdatingProfile ? (
-                  <>
-                    <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-background border-t-transparent"></span>
-                    Updating...
-                  </>
-                ) : (
-                  'Update Email'
-                )}
-              </Button>
-            </ButtonGroup>
+            <Button
+              variant="outline"
+              onClick={() => setIsEmailChangeModalOpen(false)}
+              disabled={isUpdatingProfile}
+              className="w-full sm:w-auto flex items-center justify-center"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleUpdateEmail}
+              disabled={isUpdatingProfile || !newEmail || newEmail === profileData.email}
+              className="w-full sm:w-auto flex items-center justify-center"
+            >
+              {isUpdatingProfile ? (
+                <>
+                  <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-background border-t-transparent"></span>
+                  Updating...
+                </>
+              ) : (
+                'Update Email'
+              )}
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
