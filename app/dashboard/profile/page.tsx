@@ -7,7 +7,7 @@ import { useSubscription, Subscription } from '@/hooks/useSubscription';
 import { AccountManagement } from '@/components/AccountManagement';
 import { ErrorBoundary } from 'react-error-boundary';
 import { StripeBuyButton } from '@/components/StripeBuyButton';
-import { FaCheckCircle, FaCreditCard, FaSync } from 'react-icons/fa';
+import { FaCheckCircle, FaCreditCard, FaSync, FaUpload, FaTrash } from 'react-icons/fa';
 import { Button } from '@/components/ui/button';
 import { ButtonGroup } from '@/components/ui/button-group';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -24,6 +24,7 @@ import { Toaster } from '@/components/ui/toaster';
 import React from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { useImageUpload } from '@/hooks/use-image-upload';
 
 // Extend the Subscription type with additional properties
 interface ExtendedSubscription extends Subscription {
@@ -78,6 +79,26 @@ function ProfileContent() {
   const isMounted = React.useRef(true);
   // Add a ref to track if the initial loading is complete
   const initialLoadComplete = React.useRef(false);
+
+  // Image upload hook
+  const {
+    previewUrl,
+    fileInputRef,
+    handleThumbnailClick,
+    handleFileChange,
+    handleRemove,
+  } = useImageUpload({
+    onUpload: (url) => {
+      // When an image is uploaded, we'll get a local object URL
+      // We need to convert this to a File object for our existing upload logic
+      fetch(url)
+        .then(res => res.blob())
+        .then(blob => {
+          const file = new File([blob], "profile-image.jpg", { type: "image/jpeg" });
+          setAvatarFile(file);
+        });
+    }
+  });
 
   // Set isMounted to false when component unmounts
   useEffect(() => {
@@ -554,8 +575,9 @@ function ProfileContent() {
 
   // Handle avatar upload
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setAvatarFile(e.target.files[0]);
+    const file = e.target.files?.[0];
+    if (file) {
+      setAvatarFile(file);
     }
   };
 
@@ -750,13 +772,29 @@ function ProfileContent() {
               <div className="space-y-6">
                 {/* Profile Avatar */}
                 <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
-                  <div className="relative">
+                  <div className="relative cursor-pointer" onClick={handleThumbnailClick}>
                     <Avatar className="h-24 w-24 border-2 border-border">
-                      <AvatarImage src={profileData.avatarUrl} alt={profileData.name || 'User'} />
-                      <AvatarFallback className="text-2xl">
-                        {profileData.name ? profileData.name.charAt(0).toUpperCase() : user?.email?.charAt(0).toUpperCase() || 'U'}
-                      </AvatarFallback>
+                      {previewUrl ? (
+                        <AvatarImage src={previewUrl} alt={profileData.name || 'User'} />
+                      ) : (
+                        <>
+                          <AvatarImage src={profileData.avatarUrl} alt={profileData.name || 'User'} />
+                          <AvatarFallback className="text-2xl">
+                            {profileData.name ? profileData.name.charAt(0).toUpperCase() : user?.email?.charAt(0).toUpperCase() || 'U'}
+                          </AvatarFallback>
+                        </>
+                      )}
                     </Avatar>
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-full opacity-0 hover:opacity-100 transition-opacity">
+                      <FaUpload className="text-white text-lg" />
+                    </div>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFileChange}
+                      className="hidden"
+                    />
                   </div>
                   <div className="flex-1 space-y-2">
                     <div>
@@ -764,25 +802,38 @@ function ProfileContent() {
                       <p className="text-sm text-muted-foreground mb-2">Upload a new profile picture</p>
                     </div>
                     <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                      <Input 
-                        id="avatar" 
-                        type="file" 
-                        accept="image/*"
-                        onChange={handleAvatarChange}
-                        className="w-full"
-                      />
-                      <Button 
-                        onClick={handleAvatarUpload} 
-                        disabled={!avatarFile || isUploadingAvatar}
-                        className="w-full sm:w-auto flex items-center justify-center"
-                      >
-                        {isUploadingAvatar ? (
-                          <>
-                            <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-background border-t-transparent"></span>
-                            Uploading...
-                          </>
-                        ) : 'Upload'}
-                      </Button>
+                      {previewUrl && (
+                        <div className="flex gap-2">
+                          <Button 
+                            onClick={handleAvatarUpload} 
+                            disabled={isUploadingAvatar}
+                            className="w-full sm:w-auto flex items-center justify-center"
+                          >
+                            {isUploadingAvatar ? (
+                              <>
+                                <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-background border-t-transparent"></span>
+                                Uploading...
+                              </>
+                            ) : 'Upload'}
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            onClick={handleRemove}
+                            className="w-full sm:w-auto flex items-center justify-center"
+                          >
+                            <FaTrash className="mr-2 h-4 w-4" /> Cancel
+                          </Button>
+                        </div>
+                      )}
+                      {!previewUrl && (
+                        <Button 
+                          variant="outline" 
+                          onClick={handleThumbnailClick}
+                          className="w-full sm:w-auto flex items-center justify-center"
+                        >
+                          <FaUpload className="mr-2 h-4 w-4" /> Select Image
+                        </Button>
+                      )}
                     </div>
                   </div>
                 </div>
