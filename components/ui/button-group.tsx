@@ -27,12 +27,18 @@ interface ButtonGroupProps extends React.HTMLAttributes<HTMLDivElement> {
    * @default "2"
    */
   spacing?: "1" | "2" | "3" | "4"
+  
+  /**
+   * Whether buttons should be full-width on desktop.
+   * @default false
+   */
+  fullWidthDesktop?: boolean
 }
 
 /**
  * ButtonGroup component for responsive button layouts.
  * On mobile, buttons will be stacked vertically and take full width by default.
- * On desktop, buttons will be arranged vertically by default.
+ * On desktop, buttons will be arranged vertically by default and only as wide as their content.
  */
 export function ButtonGroup({
   className,
@@ -41,6 +47,7 @@ export function ButtonGroup({
   desktopDirection = "vertical",
   breakpoint = "sm",
   spacing = "2",
+  fullWidthDesktop = false,
   ...props
 }: ButtonGroupProps) {
   // Determine the flex direction and spacing classes based on the props
@@ -51,8 +58,11 @@ export function ButtonGroup({
   const mobileSpacing = mobileDirection === "vertical" ? `space-y-${spacing}` : `space-x-${spacing}`
   const desktopSpacing = desktopDirection === "vertical" ? `space-y-${spacing}` : `space-x-${spacing}`
   
+  // Determine alignment for desktop
+  const desktopAlignment = desktopDirection === "vertical" ? "items-start" : "items-center"
+  
   // Combine the classes based on the breakpoint
-  const responsiveClasses = `w-full flex ${mobileFlexDirection} ${mobileSpacing} ${breakpoint}:${desktopFlexDirection} ${breakpoint}:${mobileSpacing === desktopSpacing ? "" : `${breakpoint}:space-y-0 ${breakpoint}:${desktopSpacing}`}`
+  const responsiveClasses = `w-full flex ${mobileFlexDirection} ${mobileSpacing} ${breakpoint}:${desktopFlexDirection} ${breakpoint}:${desktopAlignment} ${breakpoint}:${mobileSpacing === desktopSpacing ? "" : `${breakpoint}:space-y-0 ${breakpoint}:${desktopSpacing}`}`
   
   return (
     <div className={cn(responsiveClasses, className)} {...props}>
@@ -63,6 +73,7 @@ export function ButtonGroup({
           return React.cloneElement(child as React.ReactElement<any>, {
             className: cn(
               "w-full", 
+              `${breakpoint}:${fullWidthDesktop ? "w-full" : "w-auto"}`,
               child.props.className || ""
             ),
           });

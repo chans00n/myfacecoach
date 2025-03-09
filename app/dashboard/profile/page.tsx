@@ -697,7 +697,7 @@ function ProfileContent() {
                     <ButtonGroup spacing="2">
                       <Button 
                         variant="outline" 
-                        className="flex items-center justify-center gap-2"
+                        className="flex items-center justify-center gap-2 sm:justify-start"
                         onClick={openStripeCustomerPortal}
                       >
                         <FaCreditCard className="text-muted-foreground" />
@@ -706,7 +706,7 @@ function ProfileContent() {
                       
                       <Button 
                         variant="outline" 
-                        className="flex items-center justify-center gap-2"
+                        className="flex items-center justify-center gap-2 sm:justify-start"
                         onClick={handleCheckStatus}
                         disabled={isCheckingStatus}
                       >
@@ -717,7 +717,7 @@ function ProfileContent() {
                       {subscription.status === 'active' && !subscription.cancel_at_period_end && (
                         <Button 
                           variant="destructive" 
-                          className="flex items-center justify-center"
+                          className="flex items-center justify-center sm:justify-start"
                           onClick={() => setIsCancelModalOpen(true)}
                           disabled={isCancelling}
                         >
@@ -774,7 +774,7 @@ function ProfileContent() {
                       <Button 
                         onClick={handleAvatarUpload} 
                         disabled={!avatarFile || isUploadingAvatar}
-                        className="w-full flex items-center justify-center"
+                        className="w-full sm:w-auto flex items-center justify-center"
                       >
                         {isUploadingAvatar ? (
                           <>
@@ -802,7 +802,7 @@ function ProfileContent() {
                     <Button 
                       onClick={handleUpdateName} 
                       disabled={isUpdatingProfile || !profileData.name}
-                      className="w-full flex items-center justify-center"
+                      className="w-full sm:w-auto flex items-center justify-center"
                     >
                       {isUpdatingProfile ? 'Saving...' : 'Save'}
                     </Button>
@@ -818,7 +818,7 @@ function ProfileContent() {
                     <Button 
                       onClick={() => setIsEmailChangeModalOpen(true)} 
                       variant="outline"
-                      className="w-full flex items-center justify-center"
+                      className="w-full sm:w-auto flex items-center justify-center"
                     >
                       Change
                     </Button>
@@ -866,7 +866,7 @@ function ProfileContent() {
               <Button 
                 onClick={handleSavePreferences} 
                 disabled={isSaving}
-                className="w-full flex items-center justify-center"
+                className="w-full sm:w-auto flex items-center justify-center"
               >
                 {isSaving ? 'Saving...' : 'Save Changes'}
               </Button>
@@ -893,7 +893,7 @@ function ProfileContent() {
                   <Button 
                     variant="destructive" 
                     onClick={() => setIsDeleteModalOpen(true)}
-                    className="w-full flex items-center justify-center"
+                    className="w-full sm:w-auto flex items-center justify-center"
                   >
                     Delete Account
                   </Button>
@@ -938,7 +938,7 @@ function ProfileContent() {
               <Button 
                 onClick={handleSavePreferences} 
                 disabled={isSaving}
-                className="w-full flex items-center justify-center"
+                className="w-full sm:w-auto flex items-center justify-center"
               >
                 {isSaving ? 'Saving...' : 'Save Changes'}
               </Button>
@@ -979,7 +979,7 @@ function ProfileContent() {
                 variant="outline"
                 onClick={() => setIsDeleteModalOpen(false)}
                 disabled={isDeleting}
-                className="flex items-center justify-center"
+                className="flex items-center justify-center sm:justify-start"
               >
                 Cancel
               </Button>
@@ -987,7 +987,7 @@ function ProfileContent() {
                 variant="destructive"
                 onClick={handleDeleteAccount}
                 disabled={isDeleting || Boolean(subscription?.status === 'active')}
-                className="flex items-center justify-center"
+                className="flex items-center justify-center sm:justify-start"
               >
                 {isDeleting ? (
                   <>
@@ -1046,14 +1046,14 @@ function ProfileContent() {
                 variant="outline"
                 onClick={() => setIsEmailChangeModalOpen(false)}
                 disabled={isUpdatingProfile}
-                className="flex items-center justify-center"
+                className="flex items-center justify-center sm:justify-start"
               >
                 Cancel
               </Button>
               <Button
                 onClick={handleUpdateEmail}
                 disabled={isUpdatingProfile || !newEmail || newEmail === profileData.email}
-                className="flex items-center justify-center"
+                className="flex items-center justify-center sm:justify-start"
               >
                 {isUpdatingProfile ? (
                   <>
@@ -1082,7 +1082,7 @@ export default function ProfilePage() {
           <Button 
             onClick={() => window.location.reload()}
             variant="outline"
-            className="w-full sm:w-auto"
+            className="w-full sm:w-auto flex items-center justify-center"
           >
             Try Again
           </Button>

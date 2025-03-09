@@ -118,14 +118,14 @@ export const DailyLiftCard: React.FC<DailyLiftProps> = ({
             {videoUrl ? (
               <Button 
                 onClick={() => setVideoModalOpen(true)}
-                className="w-full flex items-center justify-center"
+                className="w-full sm:w-auto flex items-center justify-center"
               >
                 <Play className="h-4 w-4 mr-2" /> Start Lift
               </Button>
             ) : (
               <Button 
                 disabled
-                className="w-full"
+                className="w-full sm:w-auto"
               >
                 No Video Available
               </Button>
@@ -133,7 +133,7 @@ export const DailyLiftCard: React.FC<DailyLiftProps> = ({
             <Button 
               asChild 
               variant="outline" 
-              className="w-full"
+              className="w-full sm:w-auto"
             >
               <Link href={liftUrl} className="flex items-center justify-center">
                 Details <ArrowRight className="ml-2 h-4 w-4" />
