@@ -51,7 +51,7 @@ export function LoginForm({
     <form className={cn("flex flex-col gap-6", className)} {...props} onSubmit={handleSubmit}>
       <div className="flex flex-col items-center gap-2 text-center">
         <h1 className="text-2xl font-bold">
-          {isSignUp ? 'Create an account' : 'Login to your account'}
+          {isSignUp ? 'Try MYFC free for 7 days' : 'Login to your MYFC account'}
         </h1>
         <p className="text-balance text-sm text-muted-foreground">
           {isSignUp 
